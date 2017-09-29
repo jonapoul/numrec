@@ -1,3 +1,5 @@
+// 8/10
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -27,6 +29,8 @@ int main(int argc, char** argv) {
    std::vector<double> single_run_decay_times(n_tests_per_run);
    std::ofstream exponential_decay_times_file;
    exponential_decay_times_file.open("exponential_decay_times.txt");
+
+
 
    for (int i = 0; i < n_runs; i++) {
       // prints current running percentage
@@ -63,7 +67,10 @@ int main(int argc, char** argv) {
 
 
 
+
+
    int number_of_bins = 70;
+   // exponential decay
    {
       // mean of the plotted decay curve
       double mu = average_lifetimes[0];
@@ -94,6 +101,10 @@ int main(int argc, char** argv) {
       plt::show();
    }
 
+
+
+
+   // gaussian distribution
    {
       // calculating mean and error in the simulated distribution
       double mu = std::accumulate(average_lifetimes.begin(), average_lifetimes.end(), 0.0) / average_lifetimes.size();
@@ -104,7 +115,7 @@ int main(int argc, char** argv) {
       printf("Distribution of all exponential decay curves:\n");
       printf("\tExpected decay time  = %.4f microseconds\n", tau);
       printf("\tSimulated decay time = %.4f +- %.4f microseconds\n", mu, sigma);
-      printf("\t                     = %.2f sigma from expected\n", abs(mu - tau)/sigma);
+      printf("\t                     = %.4f sigma from expected\n", abs(mu - tau)/sigma);
 
       // plot of average decay time probability
       plt::hist(average_lifetimes, number_of_bins, "b", 0.3);
