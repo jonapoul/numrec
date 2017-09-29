@@ -6,33 +6,10 @@
 #include <time.h>
 #include <numeric>
 #include <sstream>
-#include "../matplotlib-cpp/matplotlibcpp.h"
+
+#include "functions.h"
+#include <matplotlib-cpp/matplotlibcpp.h>
 namespace plt = matplotlibcpp;
-using namespace std;
-
-double random_in_range(double min_val, double max_val) {
-    return min_val + (max_val-min_val) * (double)rand()/RAND_MAX ;
-}
-
-double muon_pdf(double x, double tau) {
-   return (1.0/tau) * exp(-x/tau);
-}
-
-std::pair<std::vector<double>, std::vector<double>> gaussian(double mu,
-                                                             double sigma,
-                                                             unsigned n_runs,
-                                                             double xmin,
-                                                             double xmax) {
-   int n_points = 5000;
-   std::vector<double> x(n_points), y(n_points);
-   for (int i = 0; i < n_points; i++) {
-      x[i] = xmin + i*(xmax-xmin)/(double)n_points;
-
-      // n_runs * 0.045 because this gives (more or less) the peak of the histogram
-      y[i] = n_runs * 0.045 * exp( -(x[i]-mu)*(x[i]-mu)/(2*sigma*sigma) );
-   }
-   return std::make_pair(x, y);
-}
 
 int main(int argc, char** argv) {
    srand(time(NULL));
@@ -47,12 +24,14 @@ int main(int argc, char** argv) {
    double ymin = 0.0;
    double ymax = muon_pdf(xmin, tau);
 
-   vector<double> average_lifetimes(n_runs);
+   std::vector<double> average_lifetimes(n_runs);
 
    for (int i = 0; i < n_runs; i++) {
+      // prints current running percentage
       printf("\rRunning: %.2f%%", i*100.0/(float)n_runs);
-      vector<double> line_x(n_tests_per_run),   line_y(n_tests_per_run);   // pdf equation line
-      vector<double> points_x(n_tests_per_run), points_y(n_tests_per_run); // generated points under the pdf curve
+
+      std::vector<double> line_x(n_tests_per_run),   line_y(n_tests_per_run);   // pdf equation line
+      std::vector<double> points_x(n_tests_per_run), points_y(n_tests_per_run); // generated points under the pdf
       double running_total = 0.0; // sum of all decay times that are considered in the simulated mean
 
       for (int j = 0; j < n_tests_per_run; j++) {
@@ -91,18 +70,18 @@ int main(int argc, char** argv) {
    plt::named_plot("Expected mean",  {tau, tau}, {0, y_maximum}, "r--");
    plt::named_plot("Simulated mean", {mu, mu},   {0, y_maximum}, "g--");
 
-#if 1
+#if 0
    // lines to represent 1, 2, 3 sigma distance from the mean
-   plt::plot({mu+1*sigma, mu+1*sigma}, {0, y_maximum}, "y-");
-   plt::plot({mu-1*sigma, mu-1*sigma}, {0, y_maximum}, "y-");
-   plt::plot({mu+2*sigma, mu+2*sigma}, {0, y_maximum}, "y-");
-   plt::plot({mu-2*sigma, mu-2*sigma}, {0, y_maximum}, "y-");
-   plt::plot({mu+3*sigma, mu+3*sigma}, {0, y_maximum}, "y-");
-   plt::plot({mu-3*sigma, mu-3*sigma}, {0, y_maximum}, "y-");
+   plt::plot({tau+1*sigma, tau+1*sigma}, {0, y_maximum}, "y-");
+   plt::plot({tau-1*sigma, tau-1*sigma}, {0, y_maximum}, "y-");
+   plt::plot({tau+2*sigma, tau+2*sigma}, {0, y_maximum}, "y-");
+   plt::plot({tau-2*sigma, tau-2*sigma}, {0, y_maximum}, "y-");
+   plt::plot({tau+3*sigma, tau+3*sigma}, {0, y_maximum}, "y-");
+   plt::plot({tau-3*sigma, tau-3*sigma}, {0, y_maximum}, "y-");
 #endif
 
    // overlaid expected gaussian distribution
-   auto overlaid_gaussian = gaussian(mu, sigma, n_runs, mu-sigma*4, mu+sigma*4);
+   CoordsArray overlaid_gaussian = gaussian(mu, sigma, n_runs, mu-sigma*4, mu+sigma*4);
    plt::named_plot("Expected distribution", overlaid_gaussian.first, overlaid_gaussian.second, "b-");
 
    // set up plot area and bring it up
