@@ -16,7 +16,17 @@ CoordsArray gaussian(double mu, double sigma, unsigned n_runs, double xmin, doub
 
       // n_runs * 0.045 because this gives (more or less) the peak of the histogram
       double exponent = 0.5 * pow((x[i]-mu)/sigma, 2.0);
-      y[i] = n_runs * 0.05 * exp( -exponent );
+      y[i] = n_runs * 0.045 * exp( -exponent );
+   }
+   return std::make_pair(x, y);
+}
+
+CoordsArray exp_decay(double tau, unsigned n_runs, double xmin, double xmax) {
+   int n_points = 5000;
+   std::vector<double> x(n_points), y(n_points);
+   for (int i = 0; i < n_points; i++) {
+      x[i] = xmin + i*(xmax-xmin)/(double)n_points;
+      y[i] = n_runs * 0.21 * muon_pdf(x[i], tau);
    }
    return std::make_pair(x, y);
 }
