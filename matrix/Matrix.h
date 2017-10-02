@@ -3,7 +3,7 @@
 #include <iostream>
 //#include <boost/numeric/ublas/matrix.hpp>
 
-template <typename Type> 
+template <typename Type>
 class Matrix {
    private:
       std::vector< std::vector<Type> > elements_;

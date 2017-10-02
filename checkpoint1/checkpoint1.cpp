@@ -1,7 +1,10 @@
-// 8/10
+/*
+   8/10
+   USE MORE CLASSES
+   YOU ABSOLUTE IDIOT
+*/
 
 #include <iostream>
-#include <fstream>
 #include <vector>
 #include <math.h>
 #include <numeric>
@@ -14,7 +17,7 @@ namespace plt = matplotlibcpp;
 int main(int argc, char** argv) {
    srand(time(NULL));
 
-   double tau = 2.2;//e-6;
+   double tau = 2.2; // microseconds
 
    int n_tests_per_run = 1000;
    int n_runs          = (argc > 1) ? std::stoi(argv[1]) : 500;
@@ -27,9 +30,6 @@ int main(int argc, char** argv) {
 
    std::vector<double> average_lifetimes(n_runs);
    std::vector<double> single_run_decay_times(n_tests_per_run);
-   std::ofstream exponential_decay_times_file;
-   exponential_decay_times_file.open("exponential_decay_times.txt");
-
 
 
    for (int i = 0; i < n_runs; i++) {
@@ -56,16 +56,11 @@ int main(int argc, char** argv) {
          }
          if (i == 0) {
             single_run_decay_times[j] = points_x[j];
-            exponential_decay_times_file << single_run_decay_times[j] << '\n';
          }
       }
       // mean lifetime of the muon for this run
       average_lifetimes[i] = running_total / (double)n_tests_per_run;
    }
-   exponential_decay_times_file.close();
-
-
-
 
 
 

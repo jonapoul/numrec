@@ -5,7 +5,7 @@ using std::cout;
 int main() {
    try {
       // A*X = B
-      // => X = (A^-1)*B 
+      // => X = (A^-1)*B
       Matrix<float> A(5, 5);
       A.initialise({
           3,  4,  8,  5, 4,
@@ -27,7 +27,7 @@ int main() {
       // single column matrix of coefficients
       auto X = A.inverse() * B;
       X.print("X");
-   } 
+   }
    catch (const char* e) { std::cout << e << '\n'; }
    return 0;
 }
