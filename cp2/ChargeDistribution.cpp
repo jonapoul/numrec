@@ -29,8 +29,8 @@ void ChargeDistribution::get_XY_values(double start,
                                        double end,
                                        int N_points,
                                        /*output*/
-                                       array* x, 
-                                       array* y) {
+                                       vector<double>* x, 
+                                       vector<double>* y) {
    // initialise both to arrays of zeroes
    *x = std::vector<double>(N_points, 0.0);
    *y = std::vector<double>(N_points, 0.0);
@@ -44,15 +44,16 @@ void ChargeDistribution::get_XY_values(double start,
 }
 
 void ChargeDistribution::plot(const std::string& title) {
-   array x, y;
+   vector<double> x, y;
    double min_value = -2, max_value = 2;
    int N_points = 1000;
    this->get_XY_values(min_value, max_value, N_points, &x, &y);
 
-   plt::plot(x, y, "r--");
+   plt::named_plot("rho(x)", x, y, "r-");
    plt::xlabel("x");
    plt::ylabel("Charge Density");
    plt::xlim(min_value, max_value);
    plt::title(title);
+   plt::legend();
    plt::show();
 }
