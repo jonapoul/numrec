@@ -1,5 +1,8 @@
 #include <iostream>
+#include <string>
+
+#include "ChargeDistribution.h"
 
 int main() {
-   std::cout << "PN junctions or something idk\n";
+   int x = 0;
 }

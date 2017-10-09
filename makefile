@@ -13,5 +13,8 @@ matrix: $(DIR0)/matrix.cpp
 cp1: $(DIR1)/cp1.cpp
 	$(CXX) $^ -o $(DIR1)/$@ $(STD) $(PLOTFLAG)
 
-cp2: $(DIR2)/cp2.cpp
-	$(CXX) $^ -o $(DIR2)/$@ $(STD)
+cp2: $(DIR2)/cp2.cpp $(DIR2)/ChargeDistribution.o
+	$(CXX) $^ -o $(DIR2)/$@ $(STD) $(PLOTFLAG)
+
+ChargeDistribution.o: $(DIR2)/ChargeDistribution.cpp
+	$(CXX) -c $^ -o $(DIR2)/$@ $(STD) $(PLOTFLAG)
