@@ -1,7 +1,4 @@
 #include <string>
-#include <matplotlib-cpp/matplotlibcpp.h>
-namespace plt = matplotlibcpp;
-
 #include "ChargeDistribution.h"
 
 ChargeDistribution::ChargeDistribution() {
@@ -13,12 +10,12 @@ ChargeDistribution::ChargeDistribution() {
    k  = M_PI/(x3-x1);
 }
 
-double ChargeDistribution::shape(double x0, double x1, double x) {
+double ChargeDistribution::shape(double x0, double x1, double x) const {
    auto z = (x-x0)/(x1-x0);
    return pow(z, 2) * (exp(1-z)-1) / 0.18;
 }
 
-double ChargeDistribution::evaluate(double x) {
+double ChargeDistribution::evaluate(double x) const {
    if      (x < this->x1) return  0;
    else if (x < this->x2) return  shape(this->x1, this->x2, x);
    else if (x < this->x3) return -shape(this->x3, this->x2, x);
@@ -30,7 +27,7 @@ void ChargeDistribution::get_XY_values(double start,
                                        int N_points,
                                        /*output*/
                                        vector<double>* x, 
-                                       vector<double>* y) {
+                                       vector<double>* y) const {
    // initialise both to arrays of zeroes
    *x = std::vector<double>(N_points, 0.0);
    *y = std::vector<double>(N_points, 0.0);
@@ -41,20 +38,4 @@ void ChargeDistribution::get_XY_values(double start,
       (*x)[i] = start + i*dx;
       (*y)[i] = evaluate(start + i*dx);
    }
-}
-
-void ChargeDistribution::plot(const std::string& title, bool show_plot) {
-   vector<double> x, y;
-   double min_value = -2, max_value = 2;
-   int N_points = 1000;
-   this->get_XY_values(min_value, max_value, N_points, &x, &y);
-
-   plt::named_plot("rho(x)", x, y, "r-");
-   plt::xlabel("x");
-   plt::ylabel("Charge Density");
-   plt::xlim(min_value, max_value);
-   plt::title(title);
-   plt::legend();
-   if (show_plot)
-      plt::show();
 }

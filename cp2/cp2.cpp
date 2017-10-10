@@ -4,10 +4,14 @@
 
 #include "ChargeDistribution.h"
 #include "RootFinder.h"
+#include "Plotter.h"
 
-int main() {
-   RootFinder rf(SINUSOIDAL, 1e-6);
+int main(int argc, char** argv) {
+   Plotter plotter;
+
+   RootFinder rf(argc, argv);
    rf.test_methods();
+   plotter.plot(rf);
 
    /*
    PART 1 
@@ -24,5 +28,5 @@ int main() {
       - plot V(x) in range -2 to +2
    */
    ChargeDistribution cd;
-   cd.plot("Charge density against x", false);
+   plotter.plot(cd, "Charge density against x", false);
 }
