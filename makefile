@@ -1,26 +1,22 @@
 CC=g++
-CFLAGS=-c -Wall
+CCFLAGS=-c -Wall
+LDFLAGS=-Wall
 PLOTFLAGS=-std=c++11 -I/usr/include/python2.7 -lpython2.7
+CP2_CPP := $(wildcard cp2/*.cpp)
+CP2_OBJ := $(addprefix obj/,$(notdir $(CP2_CPP:.cpp=.o)))
 
-default: matrix cp1 cp2
+default: checkpoint1 checkpoint2
 
-matrix: matrix/matrix.cpp
-	$(CC) $^ -o matrix/$@
+checkpoint1: cp1/cp1.cpp
+	$(CC) $(LDFLAGS) $^ -o $@ $(PLOTFLAGS)
 
-cp1: cp1/cp1.cpp
-	$(CC) $^ -o cp1/$@ $(PLOTFLAGS)
+checkpoint2: $(CP2_OBJ)
+	$(CC) $(LDFLAGS) -o $@ $^ $(PLOTFLAGS)
 
-cp2: cp2/cp2.cpp cp2/ChargeDistribution.o cp2/RootFinder.o cp2/Plotter.o
-	$(CC) $^ -o cp2/$@ $(PLOTFLAGS)
-
-cp2/ChargeDistribution.o: cp2/ChargeDistribution.cpp
-	$(CC) $(CFLAGS) $^ -o $@ 
-
-cp2/RootFinder.o: cp2/RootFinder.cpp
-	$(CC) $(CFLAGS) $^ -o $@
-
-cp2/Plotter.o: cp2/Plotter.cpp
-	$(CC) $(CFLAGS) $^ -o $@ $(PLOTFLAGS)
+obj/%.o: cp2/%.cpp
+	$(CC) $(CCFLAGS) -o $@ $< $(PLOTFLAGS)
 
 clean:
-	@rm -r -f obj/
+	@rm -r -f *.o
+	@rm checkpoint1
+	@rm checkpoint2

@@ -1,6 +1,8 @@
 #ifndef ROOTFINDER_H
 #define ROOTFINDER_H
 
+#include <vector>
+
 enum FunctionOption {
    CUBIC,
    EXPONENTIAL,

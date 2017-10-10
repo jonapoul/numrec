@@ -2,17 +2,23 @@
 #include <string>
 #include <math.h>
 
-#include "ChargeDistribution.h"
+// exercises
 #include "RootFinder.h"
+#include "ODESolver.h"
 #include "Plotter.h"
+
+// checkpoint
+#include "ChargeDistribution.h"
 
 int main(int argc, char** argv) {
    Plotter plotter;
 
-   // expects "cp2 <function_option> <epsilon_power> <xmin> <xmax>"
+   // cp2 <function_option> <epsilon_power> <xmin> <xmax>
    RootFinder rf(argc, argv);
    rf.test_methods();
-   plotter.plot(rf);
+   plotter.plot(rf, true);
+
+   ODESolver ode;
 
    /*
    PART 1 

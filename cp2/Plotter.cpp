@@ -9,7 +9,7 @@
 #include <matplotlib-cpp/matplotlibcpp.h>
 namespace plt = matplotlibcpp; 
 
-void Plotter::plot(const RootFinder& rf) {
+void Plotter::plot(const RootFinder& rf, bool show_plot) {
    int N_points = 1e4;
    std::vector<double> x(N_points), y(N_points); // curve line
    double ymin = 1e200, ymax = -1e200;
@@ -36,7 +36,8 @@ void Plotter::plot(const RootFinder& rf) {
    plt::xlim(rf.xmin-dw, rf.xmax+dw);
    plt::xlabel("x");
    plt::ylabel("f(x)");
-   plt::show();
+   if (show_plot)
+      plt::show();
 }
 
 void Plotter::plot(const ChargeDistribution& cd, const std::string& title, bool show_plot) {
