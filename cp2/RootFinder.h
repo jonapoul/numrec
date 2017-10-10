@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "../global.h"
+
 enum RootFunction {
    CUBIC,
    EXPONENTIAL,
@@ -31,12 +33,12 @@ private:
    double xmin;
    double xmax;
 
-   double f          (const double x)                   const;
-   double dfdx       (const double x)                   const;
-   int    sign       (const double x)                   const { return (x > 0.0) ? 1 : -1; }
-   bool   is_in_range(double min, double x, double max) const { return (min-epsilon<x && x<max+epsilon); }   
+   double f(const double x) const;
+   double dfdx(const double x) const;
+   int    sign(const double x) const { return (x > 0.0) ? 1 : -1; }
 
-   std::vector<double> get_actual_roots(double xmin, double xmax) const;
+   bool   is_in_range(double min, double x, double max) const { return (min-epsilon<x && x<max+epsilon); }   
+   array  get_actual_roots(double xmin, double xmax) const;
 };
 
 #endif

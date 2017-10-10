@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 
+#include "../global.h"
 #include "RootFinder.h"
 
 RootFinder::RootFinder(int argc, char** argv) {
@@ -15,12 +16,16 @@ RootFinder::RootFinder(int argc, char** argv) {
    // tries to read input parameters
    if (argc > 1) { // function option
       int temp = std::stoi(argv[1]);
-      if (0 <= temp && temp <= ROOT_FUNCTION_COUNT)
+      if (0 <= temp && temp < ROOT_FUNCTION_COUNT) {
          this->function_option = static_cast<RootFunction>(temp);
+      } else {
+         printf("You can't put %d as the function choice. Pick one from %d-%d\n",
+                temp, 0, ROOT_FUNCTION_COUNT-1);
+         exit(1);
+      }
    }
    if (argc > 2) { // epsilon power
-      double power = abs(std::stod(argv[2]));
-      this->epsilon = pow(10.0, -power);
+      this->epsilon = std::stod(argv[2]);
    }
    if (argc > 4) { // xmin/max
       this->xmin = std::stod(argv[3]);
@@ -73,7 +78,7 @@ void RootFinder::test_methods() const {
 
    // print out what the results should have been
    // the range passed to get_actual_results is slightly wider to show edge roots
-   std::vector<double> actual_roots = get_actual_roots(this->xmin-1, this->xmax+1);
+   array actual_roots = get_actual_roots(this->xmin-1, this->xmax+1);
    printf("Actual roots = \n");
    for (auto r : actual_roots) 
       printf("\t%.*f\n", this->precision+1, r); 
@@ -150,8 +155,8 @@ double RootFinder::hybrid(double x1, double x2, int* n) const {
    else                           return 0.0;               // just in case
 }
 
-std::vector<double> RootFinder::get_actual_roots(double x_min, double x_max) const {
-   std::vector<double> roots = { };
+array RootFinder::get_actual_roots(double x_min, double x_max) const {
+   array roots = { };
    switch (this->function_option) {
       case CUBIC:
          roots = { -2.49771, 1.20296, 3.39475 };

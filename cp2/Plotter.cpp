@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string> 
 
+#include "../global.h"
 #include "Plotter.h"
 #include "RootFinder.h"
 #include "ODESolver.h"
@@ -11,8 +12,9 @@
 namespace plt = matplotlibcpp; 
 
 void Plotter::plot(const RootFinder& rf, bool show_plot) {
-   int N_points = 1e4;
-   std::vector<double> x(N_points), y(N_points); // curve line
+   int N_points = 1e3;
+
+   array x(N_points), y(N_points);
    double ymin = 1e200, ymax = -1e200;
    for (int i = 0; i < N_points; i++) {
       x[i] = rf.xmin + i*(rf.xmax-rf.xmin)/(double)N_points;
@@ -20,10 +22,10 @@ void Plotter::plot(const RootFinder& rf, bool show_plot) {
       if (y[i] < ymin) ymin = y[i];
       if (y[i] > ymax) ymax = y[i];
    }
-   std::vector<double> x_yaxis = {0.0, 0.0},             y_yaxis = {-1e200, 1e200}; // y axis line
 
    std::stringstream ss;
-   ss << rf.function_name << " function, N_points = " << N_points;
+   ss << rf.function_name << " function, epsilon = " << rf.epsilon << ", N_points = " << N_points;
+   printf("%d %s\n", (int)rf.function_option, rf.function_name.c_str());
    plt::title(ss.str());
    
    // axis limits
@@ -43,7 +45,7 @@ void Plotter::plot(const RootFinder& rf, bool show_plot) {
 
 void Plotter::plot(const ODESolver& ode, bool show_plot) {
    int N_points = 1e4;
-   std::vector<double> x(N_points), y(N_points), dydx(N_points), xaxis(N_points), yaxis(N_points);
+   array x(N_points), y(N_points), dydx(N_points), xaxis(N_points), yaxis(N_points);
    double ymin = 1e200, ymax = -1e200;
 
    for (int i = 0; i < N_points; i++) {
@@ -82,7 +84,7 @@ void Plotter::plot(const ODESolver& ode, bool show_plot) {
 }
 
 void Plotter::plot(const ChargeDistribution& cd, const std::string& title, bool show_plot) {
-   std::vector<double> x, y;
+   array x, y;
    double min_value = -2, max_value = 2;
    int N_points = 1000;
    cd.get_XY_values(min_value, max_value, N_points, &x, &y);
@@ -95,4 +97,12 @@ void Plotter::plot(const ChargeDistribution& cd, const std::string& title, bool 
    plt::legend();
    if (show_plot)
       plt::show();
+}
+
+void test_plot(array x, array y) {
+   plt::title(std::to_string(x.size()));
+   plt::plot(x, y, "r-");
+   plt::xlabel("x");
+   plt::ylabel("y");
+   plt::show();
 }

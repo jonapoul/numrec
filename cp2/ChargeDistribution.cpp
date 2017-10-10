@@ -1,4 +1,6 @@
 #include <string>
+
+#include "../global.h"
 #include "ChargeDistribution.h"
 
 ChargeDistribution::ChargeDistribution() {
@@ -29,8 +31,8 @@ void ChargeDistribution::get_XY_values(double start,
                                        vector<double>* x, 
                                        vector<double>* y) const {
    // initialise both to arrays of zeroes
-   *x = std::vector<double>(N_points, 0.0);
-   *y = std::vector<double>(N_points, 0.0);
+   *x = array(N_points, 0.0);
+   *y = array(N_points, 0.0);
    double dx = (end - start) / static_cast<double>(N_points);
 
    // fill arrays with function values

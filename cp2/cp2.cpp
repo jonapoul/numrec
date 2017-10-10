@@ -14,13 +14,14 @@ int main(int argc, char** argv) {
    Plotter plotter;
 
 #if 0
-   // cp2 <function_option> <epsilon_power> <xmin> <xmax>
+   // cp2 <function_option> <epsilon> <xmin> <xmax>
    RootFinder rf(argc, argv);
    rf.test_methods();
    plotter.plot(rf, true);
 #endif
    
    ODESolver ode(argc, argv);
+   ode.test_methods();
    plotter.plot(ode, true);
 
    /*
