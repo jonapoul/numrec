@@ -7,10 +7,10 @@ namespace plt = matplotlibcpp;
 ChargeDistribution::ChargeDistribution() {
    x0 = -2;
    x1 = -1;
-   x2 = 0;
-   x3 = 1;
-   x4 = 2;
-   k = M_PI/(x3-x1);
+   x2 =  0;
+   x3 =  1;
+   x4 =  2;
+   k  = M_PI/(x3-x1);
 }
 
 double ChargeDistribution::shape(double x0, double x1, double x) {
@@ -43,7 +43,7 @@ void ChargeDistribution::get_XY_values(double start,
    }
 }
 
-void ChargeDistribution::plot(const std::string& title) {
+void ChargeDistribution::plot(const std::string& title, bool show_plot) {
    vector<double> x, y;
    double min_value = -2, max_value = 2;
    int N_points = 1000;
@@ -55,5 +55,6 @@ void ChargeDistribution::plot(const std::string& title) {
    plt::xlim(min_value, max_value);
    plt::title(title);
    plt::legend();
-   plt::show();
+   if (show_plot)
+      plt::show();
 }

@@ -18,6 +18,5 @@ private:
 
 public:
    ChargeDistribution();
-   void plot(const std::string& title);
-
+   void plot(const std::string& title, bool show_plot = true);
 };

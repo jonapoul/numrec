@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "."
+		},
+		{
+			"path": "/usr/include/matplotlib-cpp"
 		}
 	]
 }

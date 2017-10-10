@@ -1,11 +1,19 @@
 #include <iostream>
 #include <string>
+#include <math.h>
 
 #include "ChargeDistribution.h"
+#include "RootFinder.h"
 
 int main() {
-   ChargeDistribution cd;
-   cd.plot("Charge density against x");
+   RootFinder rf;
+   // function constants
+   rf.a =  1.2;
+   rf.b = -1.8;
+   rf.c =  0.3;
+   rf.d =  0.0;
+   rf.epsilon = 1e-6;
+   rf.test_methods();
 
    /*
    PART 1 
@@ -21,4 +29,6 @@ int main() {
       - input the same discrete x/y values for this integration
       - plot V(x) in range -2 to +2
    */
+   ChargeDistribution cd;
+   cd.plot("Charge density against x", false);
 }
