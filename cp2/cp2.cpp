@@ -6,13 +6,7 @@
 #include "RootFinder.h"
 
 int main() {
-   RootFinder rf;
-   // function constants
-   rf.a =  1.2;
-   rf.b = -1.8;
-   rf.c =  0.3;
-   rf.d =  0.0;
-   rf.epsilon = 1e-6;
+   RootFinder rf(SINUSOIDAL, 1e-6);
    rf.test_methods();
 
    /*
