@@ -1,6 +1,7 @@
 #include <math.h>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 #include "RootFinder.h"
 
@@ -169,7 +170,9 @@ std::vector<double> RootFinder::get_actual_roots(double x_min, double x_max) con
             if (is_in_range(x_min, root2, x_max)) roots.push_back(root2);
 
             // if neither are in the range, back out of the loop and return
-            if (!is_in_range(x_min, root1, x_max) && !is_in_range(x_min, root2, x_max))
+            if (!is_in_range(x_min, root1, x_max) && 
+                !is_in_range(x_min, root2, x_max) && 
+                n-n_min > 4)
                break;
          }
          break;
@@ -178,5 +181,7 @@ std::vector<double> RootFinder::get_actual_roots(double x_min, double x_max) con
       default:
          break;
    }
+   // sort into order and return
+   std::sort(roots.begin(), roots.end(), [](double a, double b) { return a < b; });
    return roots;
 }

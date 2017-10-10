@@ -9,6 +9,7 @@
 int main(int argc, char** argv) {
    Plotter plotter;
 
+   // expects "cp2 <function_option> <epsilon_power> <xmin> <xmax>"
    RootFinder rf(argc, argv);
    rf.test_methods();
    plotter.plot(rf);
