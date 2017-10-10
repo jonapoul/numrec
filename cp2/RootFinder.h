@@ -3,11 +3,11 @@
 
 #include <vector>
 
-enum FunctionOption {
+enum RootFunction {
    CUBIC,
    EXPONENTIAL,
    SINUSOIDAL,
-   FUNCTIONCOUNT
+   ROOT_FUNCTION_COUNT
 }; 
 
 class RootFinder {
@@ -24,7 +24,7 @@ public:
    double hybrid       (double x1, double x2, int* n) const;
 
 private:
-   FunctionOption function_option;
+   RootFunction function_option;
    std::string function_name;
    double epsilon;
    int precision;

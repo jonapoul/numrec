@@ -15,8 +15,8 @@ RootFinder::RootFinder(int argc, char** argv) {
    // tries to read input parameters
    if (argc > 1) { // function option
       int temp = std::stoi(argv[1]);
-      if (0 <= temp && temp <= FUNCTIONCOUNT)
-         this->function_option = static_cast<FunctionOption>(temp);
+      if (0 <= temp && temp <= ROOT_FUNCTION_COUNT)
+         this->function_option = static_cast<RootFunction>(temp);
    }
    if (argc > 2) { // epsilon power
       double power = abs(std::stod(argv[2]));
@@ -31,18 +31,19 @@ RootFinder::RootFinder(int argc, char** argv) {
    this->precision = -static_cast<int>(log10(this->epsilon));
    // 
    switch (this->function_option) {
-      case CUBIC:       this->function_name = "cubic"; break;
+      case CUBIC:       this->function_name = "cubic";       break;
       case EXPONENTIAL: this->function_name = "exponential"; break;
-      case SINUSOIDAL:  this->function_name = "sinusoidal"; break;
-      default:          this->function_name = "unknown"; break;
-   }}
+      case SINUSOIDAL:  this->function_name = "sinusoidal";  break;
+      default:          this->function_name = "unknown";     break;
+   }
+}
 
 double RootFinder::f(double x) const { 
    switch (this->function_option) {
       case CUBIC:       return 10.2 - 7.4*x - 2.1*x*x + x*x*x;
       case EXPONENTIAL: return exp(x) - 2;
       case SINUSOIDAL:  return cos(x) * sin(3*x);
-      default:          return x;
+      default:          return 0.0;
    }
 }
 

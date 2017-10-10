@@ -13,12 +13,15 @@
 int main(int argc, char** argv) {
    Plotter plotter;
 
+#if 0
    // cp2 <function_option> <epsilon_power> <xmin> <xmax>
    RootFinder rf(argc, argv);
    rf.test_methods();
    plotter.plot(rf, true);
-
-   ODESolver ode;
+#endif
+   
+   ODESolver ode(argc, argv);
+   plotter.plot(ode, true);
 
    /*
    PART 1 
