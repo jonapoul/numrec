@@ -37,7 +37,6 @@ private:
    double dfdx(const double x) const;
    int    sign(const double x) const { return (x > 0.0) ? 1 : -1; }
 
-   bool   is_in_range(double min, double x, double max) const { return (min-epsilon<x && x<max+epsilon); }   
    array  get_actual_roots(double xmin, double xmax) const;
 };
 

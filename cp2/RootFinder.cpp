@@ -172,12 +172,12 @@ array RootFinder::get_actual_roots(double x_min, double x_max) const {
          for (int n = n_min; ; n++) {
             double root1 = n*M_PI/3.0;
             double root2 = M_PI*(n-0.5);
-            if (is_in_range(x_min, root1, x_max)) roots.push_back(root1);
-            if (is_in_range(x_min, root2, x_max)) roots.push_back(root2);
+            if (is_in_range(x_min, root1, x_max, epsilon)) roots.push_back(root1);
+            if (is_in_range(x_min, root2, x_max, epsilon)) roots.push_back(root2);
 
             // if neither are in the range, back out of the loop and return
-            if (!is_in_range(x_min, root1, x_max) && 
-                !is_in_range(x_min, root2, x_max) && 
+            if (!is_in_range(x_min, root1, x_max, epsilon) && 
+                !is_in_range(x_min, root2, x_max, epsilon) && 
                 n-n_min > 4)
                break;
          }

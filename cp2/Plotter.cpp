@@ -44,22 +44,21 @@ void Plotter::plot(const ODESolver& ode) {
    // axis limits
    double ymin, ymax;
    Plotter::find_extrema(ode.coords, &ymin, &ymax);
-   double dw = (ode.xmax - ode.xmin)/10.0;
    double dh = (ymax - ymin)/10.0;
-   plt::xlim(ode.xmin-dw, ode.xmax+dw);
-   plt::ylim(ymin-dh,     ymax+dh);
+   plt::xlim(ode.xmin, ode.xmax);
+   plt::ylim(ymin-dh,  ymax+dh);
 
    // formatting and plotting each line
    std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
    std::string format = " .";
-   for (int i = 0; i < ODE_COORDS_COUNT; i++) {
+   for (int i = 0; i < ODESolver::COORDS_COUNT; i++) {
       format[0] = colours[i % colours.size()];
-      if (i == static_cast<int>(ODECoords::ACTUAL)) format[1] = '-';
+      if (i == static_cast<int>(ODESolver::ACTUAL)) format[1] = '-';
       plt::named_plot(ode.coords[i].name, ode.coords[i].x, ode.coords[i].y, format);
    }
 
-   plt::plot({ode.xmin-dw, ode.xmax+dw}, {0.0, 0.0},         "k-"); // x axis
-   plt::plot({0.0, 0.0},                 {ymin-dh, ymax+dh}, "k-"); // y axis
+   plt::plot({ode.xmin, ode.xmax}, {0.0, 0.0},         "k-"); // x axis
+   plt::plot({0.0, 0.0},           {ymin-dh, ymax+dh}, "k-"); // y axis
 
    std::stringstream ss;
    ss << "Integrated line of " << ode.option_name << '\n';
@@ -76,21 +75,20 @@ void Plotter::plot_differences(const ODESolver& ode) {
    // axis limits
    double ymin, ymax;
    Plotter::find_extrema({ode.differences[0]}, &ymin, &ymax);
-   double dw = (ode.xmax - ode.xmin)/10.0;
    double dh = (ymax - ymin)/10.0;
-   plt::xlim(ode.xmin-dw, ode.xmax+dw);
-   plt::ylim(ymin-dh,     ymax+dh);
+   plt::xlim(ode.xmin, ode.xmax);
+   plt::ylim(ymin-dh,  ymax+dh);
 
    // formatting and plotting each line
    std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
    std::string format = " .";
-   for (int i = 0; i < /*ACTUAL*/RK2; i++) {
+   for (int i = 0; i < /*ACTUAL*/ODESolver::RK2; i++) {
       format[0] = colours[i % colours.size()];
       plt::named_plot(ode.differences[i].name, ode.differences[i].x, ode.differences[i].y, format);
    }
 
-   plt::plot({ode.xmin-dw, ode.xmax+dw}, {0.0, 0.0},         "k-"); // x axis
-   plt::plot({0.0, 0.0},                 {ymin-dh, ymax+dh}, "k-"); // y axis
+   plt::plot({ode.xmin, ode.xmax}, {0.0, 0.0},         "k-"); // x axis
+   plt::plot({0.0, 0.0},           {ymin-dh, ymax+dh}, "k-"); // y axis
 
    std::stringstream ss;
    ss << "Differences between integrated and actual for " << ode.option_name << '\n';
@@ -149,4 +147,10 @@ void Plotter::find_extrema(const std::vector<CoordsArray>& functions,
 
       find_extrema(x_arrays, min, max);
    }
+}
+
+void Plotter::test(array x, array y, double xmin, double xmax) {
+   plt::plot(x, y, "r.");
+   plt::xlim(xmin, xmax);
+   plt::show();
 }

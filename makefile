@@ -7,13 +7,16 @@ OBJ := $(addprefix obj/,$(notdir $(CP2_CPP:.cpp=.o)))
 
 default: checkpoint1 checkpoint2
 
-checkpoint1: cp1/cp1.cpp
+checkpoint1: cp1/cp1.cpp obj/global.o
 	$(CC) $(LDFLAGS) $^ -o bin/$@ $(PLOTFLAGS)
 
-checkpoint2: $(OBJ)
+checkpoint2: $(OBJ) obj/global.o
 	$(CC) $(LDFLAGS) -o bin/$@ $^ $(PLOTFLAGS)
 
-obj/%.o: cp2/%.cpp
+obj/%.o: cp2/%.cpp global.cpp
+	$(CC) $(CCFLAGS) -o $@ $< $(PLOTFLAGS)
+
+obj/global.o: global.cpp
 	$(CC) $(CCFLAGS) -o $@ $< $(PLOTFLAGS)
 
 clean:

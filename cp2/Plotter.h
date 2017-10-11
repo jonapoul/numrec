@@ -19,6 +19,8 @@ public:
                      double* min, double* max);
    void find_extrema(const std::vector<CoordsArray>& functions, 
                      double* min, double* max, bool use_x_instead=false);
+
+   static void test(array x, array y, double xmin, double xmax);
 };
 
 #endif

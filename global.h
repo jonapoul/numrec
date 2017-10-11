@@ -4,6 +4,9 @@
 #include <vector>
 #include <string>
 
+#define MIN(x,y) (x<y)?x:y
+#define MAX(x,y) (x>y)?x:y
+
 typedef std::vector<double> array;
 
 struct CoordsArray {
@@ -17,6 +20,10 @@ struct CoordsArray {
       name = "";
    }
 };
+
+bool is_in_range(double min, double x, double max, double epsilon=1e-6);
+
+void parse(const std::string& input, std::string* name, std::string* valuestr);
 
 
 #endif

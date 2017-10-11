@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
    
    // ./bin/checkpoint2 <function_option> <N_points> <xmin> <xmax>
    ODESolver ode(argc, argv);
-   ode.test_methods();
+   ode.integrate();
    plotter.plot(ode);
    plotter.plot_differences(ode);
 
