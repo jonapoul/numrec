@@ -19,7 +19,7 @@ public:
 
    // specifies which integration method to use.
    // each one is called in turn by test_methods(), then the coords stored in an array
-   enum ODECoords { EULER, RK2, RK4, ACTUAL, COORDS_COUNT };
+   enum ODECoords { EULER, RK2, RK4, ANALYTIC, COORDS_COUNT };
 
 private:
    ODEFunction option;       // choice of initial ODE to solve
@@ -37,16 +37,18 @@ private:
    std::vector<CoordsArray> coords;
    // differences between eah result and the expected value
    std::vector<CoordsArray> differences;
+   array x_range;
 
    double dfdx(const double x, const double y) const;
    double f   (const double x) const;
 
-   CoordsArray euler();
+   CoordsArray euler() const;
    CoordsArray rk2() const;
    CoordsArray rk4() const;
    CoordsArray analytic() const;
    std::vector<CoordsArray> calculate_differences() const;
    void get_arguments(int argc, char** argv);
+   array get_x_values();
 };
 
 #endif

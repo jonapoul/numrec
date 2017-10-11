@@ -26,7 +26,7 @@ void Plotter::plot(const RootFinder& rf) {
    
    // axis limits
    double ymin, ymax;
-   Plotter::find_extrema({y}, &ymin, &ymax);
+   find_extrema({y}, x, rf.xmin, rf.xmax, &ymin, &ymax);
    double dw = (rf.xmax - rf.xmin)/10.0;
    double dh = (ymax - ymin)/10.0;
    plt::ylim(ymin-dh, ymax+dh);
@@ -43,7 +43,7 @@ void Plotter::plot(const RootFinder& rf) {
 void Plotter::plot(const ODESolver& ode) {
    // axis limits
    double ymin, ymax;
-   Plotter::find_extrema(ode.coords, &ymin, &ymax);
+   find_extrema(ode.coords, ode.x_range, ode.xmin, ode.xmax, &ymin, &ymax);
    double dh = (ymax - ymin)/10.0;
    plt::xlim(ode.xmin, ode.xmax);
    plt::ylim(ymin-dh,  ymax+dh);
@@ -53,7 +53,7 @@ void Plotter::plot(const ODESolver& ode) {
    std::string format = " .";
    for (int i = 0; i < ODESolver::COORDS_COUNT; i++) {
       format[0] = colours[i % colours.size()];
-      if (i == static_cast<int>(ODESolver::ACTUAL)) format[1] = '-';
+      if (i == static_cast<int>(ODESolver::ANALYTIC)) format[1] = '-';
       plt::named_plot(ode.coords[i].name, ode.coords[i].x, ode.coords[i].y, format);
    }
 
@@ -74,7 +74,7 @@ void Plotter::plot(const ODESolver& ode) {
 void Plotter::plot_differences(const ODESolver& ode) {
    // axis limits
    double ymin, ymax;
-   Plotter::find_extrema({ode.differences[0]}, &ymin, &ymax);
+   find_extrema(ode.differences, ode.x_range, ode.xmin, ode.xmax, &ymin, &ymax);
    double dh = (ymax - ymin)/10.0;
    plt::xlim(ode.xmin, ode.xmax);
    plt::ylim(ymin-dh,  ymax+dh);
@@ -82,16 +82,18 @@ void Plotter::plot_differences(const ODESolver& ode) {
    // formatting and plotting each line
    std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
    std::string format = " .";
-   for (int i = 0; i < /*ACTUAL*/ODESolver::RK2; i++) {
+   for (int i = 0; i < ODESolver::ANALYTIC; i++) {
       format[0] = colours[i % colours.size()];
-      plt::named_plot(ode.differences[i].name, ode.differences[i].x, ode.differences[i].y, format);
+      std::string name = ode.differences[i].name;
+      if (i == ODESolver::EULER) name += "/20";
+      plt::named_plot(name, ode.differences[i].x, ode.differences[i].y, format);
    }
 
    plt::plot({ode.xmin, ode.xmax}, {0.0, 0.0},         "k-"); // x axis
    plt::plot({0.0, 0.0},           {ymin-dh, ymax+dh}, "k-"); // y axis
 
    std::stringstream ss;
-   ss << "Differences between integrated and actual for " << ode.option_name << '\n';
+   ss << "Differences between integrated and analytic for " << ode.option_name << '\n';
    ss << "N_points = " << ode.N_points << "; x0 = " << ode.x0 << "; y(x0) = " << ode.y0;
    ss << "; xmin = " << ode.xmin << "; xmax = " << ode.xmax;
    plt::xlabel("x");
@@ -117,36 +119,32 @@ void Plotter::plot(const ChargeDistribution& cd) {
 }
 
 
-void Plotter::find_extrema(const std::vector<array>& y_arrays, double* min, double* max) {
+void Plotter::find_extrema(const std::vector<array>& y_arrays, const array& x, 
+                           double xmin, double xmax, double* min, double* max) {
    if (!min || !max) {
       printf("You tried passing a nullptr to Plotter::find_extrema(). Exiting...\n");
       exit(1);
    }
    *min = 1e200, *max = -1e200;
-   for (auto array : y_arrays) {
-      for (const auto& y : array) {
-         if (y < *min) *min = y;
-         if (y > *max) *max = y;
+   for (int i = 0; i < (int)y_arrays.size(); i++) {
+      array y = y_arrays[i];
+      for (int j = 0; j < (int)y_arrays[i].size(); j++) {
+         if (x[j] < xmin) continue;
+         if (x[j] > xmax) continue;
+         if (y[j] < *min) *min = y[j];
+         if (y[j] > *max) *max = y[j];
       }
    }
    return;
 }
 
-void Plotter::find_extrema(const std::vector<CoordsArray>& functions, 
-                          double* min, double* max, bool use_x_instead) {
-   if (!use_x_instead) {
-     std::vector<array> y_arrays;
-     for (const auto& f : functions) 
-        y_arrays.push_back(f.y);
-     
-     find_extrema(y_arrays, min, max); 
-   } else {
-      std::vector<array> x_arrays;
-      for (const auto& f : functions) 
-         x_arrays.push_back(f.x);
-
-      find_extrema(x_arrays, min, max);
-   }
+void Plotter::find_extrema(const std::vector<CoordsArray>& functions, const array& x,
+                           double xmin, double xmax, double* min, double* max) {
+   std::vector<array> y_arrays;
+   for (const auto& f : functions) 
+      y_arrays.push_back(f.y);
+   
+   find_extrema(y_arrays, x, xmin, xmax, min, max); 
 }
 
 void Plotter::test(array x, array y, double xmin, double xmax) {

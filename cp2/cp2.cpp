@@ -30,4 +30,6 @@ int main(int argc, char** argv) {
    ChargeDistribution cd;
    plotter.plot(cd);
 #endif
+   
+   return 0;
 }
