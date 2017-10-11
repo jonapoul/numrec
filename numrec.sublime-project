@@ -4,8 +4,8 @@
 		{
 			"path": "."
 		},
-		{
-			"path": "/usr/include/matplotlib-cpp"
-		}
+      {
+         "path": "/usr/include"
+      }
 	]
 }

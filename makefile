@@ -8,15 +8,14 @@ OBJ := $(addprefix obj/,$(notdir $(CP2_CPP:.cpp=.o)))
 default: checkpoint1 checkpoint2
 
 checkpoint1: cp1/cp1.cpp
-	$(CC) $(LDFLAGS) $^ -o $@ $(PLOTFLAGS)
+	$(CC) $(LDFLAGS) $^ -o bin/$@ $(PLOTFLAGS)
 
 checkpoint2: $(OBJ)
-	$(CC) $(LDFLAGS) -o $@ $^ $(PLOTFLAGS)
+	$(CC) $(LDFLAGS) -o bin/$@ $^ $(PLOTFLAGS)
 
 obj/%.o: cp2/%.cpp
 	$(CC) $(CCFLAGS) -o $@ $< $(PLOTFLAGS)
 
 clean:
-	@rm -r -f *.o
-	@rm checkpoint1
-	@rm checkpoint2
+	@rm -r obj/*
+	@rm -r bin/*

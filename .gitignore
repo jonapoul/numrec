@@ -1,1 +1,4 @@
 matrix
+*.sublime-workspace
+obj
+bin
