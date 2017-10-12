@@ -23,7 +23,4 @@ struct CoordsArray {
 
 bool is_in_range(double min, double x, double max, double epsilon=1e-6);
 
-void parse(const std::string& input, std::string* name, std::string* valuestr);
-
-
 #endif

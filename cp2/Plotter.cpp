@@ -49,9 +49,9 @@ void Plotter::plot(const ODESolver& ode) {
    plt::ylim(ymin-dh,  ymax+dh);
 
    // formatting and plotting each line
-   std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
+   std::vector<char> colours = {'b', 'g', 'r', 'y', 'm', 'c'};
    std::string format = " .";
-   for (int i = 0; i < ODESolver::COORDS_COUNT; i++) {
+   for (int i = 0; i < ODESolver::METHOD_COUNT; i++) {
       format[0] = colours[i % colours.size()];
       if (i == static_cast<int>(ODESolver::ANALYTIC)) format[1] = '-';
       plt::named_plot(ode.coords[i].name, ode.coords[i].x, ode.coords[i].y, format);
@@ -104,18 +104,18 @@ void Plotter::plot_differences(const ODESolver& ode) {
 }
 
 void Plotter::plot(const ChargeDistribution& cd) {
-   array x, y;
-   double min_value = -2, max_value = 2;
-   int N_points = 1000;
-   cd.get_XY_values(min_value, max_value, N_points, &x, &y);
+   // double xmin = cd.x0, xmax = cd.x4;
+   // int N_points = 100;
+   // array x, y;
+   // cd.get_XY_values(xmin, xmax, N_points, &x, &y);
 
-   plt::named_plot("rho(x)", x, y, "r-");
-   plt::xlabel("x");
-   plt::ylabel("Charge Density");
-   plt::xlim(min_value, max_value);
-   plt::title("put title here");
-   plt::legend();
-   plt::show();
+   // plt::named_plot("rho(x)", x, y, "r.");
+   // plt::xlabel("x");
+   // plt::ylabel("y");
+   // plt::xlim(xmin, xmax);
+   // plt::title("Charge Density and Electric Field");
+   // plt::legend();
+   // plt::show();
 }
 
 
@@ -147,8 +147,19 @@ void Plotter::find_extrema(const std::vector<CoordsArray>& functions, const arra
    find_extrema(y_arrays, x, xmin, xmax, min, max); 
 }
 
-void Plotter::test(array x, array y, double xmin, double xmax) {
-   plt::plot(x, y, "r.");
+void Plotter::test(array x, std::vector<array> y, 
+                   std::vector<std::string> names,
+                   double xmin, double xmax) {
+   std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
+   std::string format = " .";
+   for (int i = 0; i < (int)y.size(); i++) {
+      format[0] = colours[i % colours.size()];
+      plt::named_plot(names[i], x, y[i], format);
+   }
    plt::xlim(xmin, xmax);
+   double ymin, ymax;
+   find_extrema(y, x, xmin, xmax, &ymin, &ymax);
+   plt::ylim(ymin, ymax);
+   plt::legend();
    plt::show();
 }

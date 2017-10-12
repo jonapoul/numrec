@@ -15,14 +15,16 @@ public:
    void plot_differences(const ODESolver& ode);
    void plot            (const ChargeDistribution& cd);
 
-   void find_extrema(const std::vector<array>& y_arrays, const array& x, 
-                     double xmin, double xmax,
-                     double* min, double* max);
-   void find_extrema(const std::vector<CoordsArray>& functions, const array& x,
-                     double xmin, double xmax,
-                     double* min, double* max);
+   static void find_extrema(const std::vector<array>& y_arrays, const array& x,
+                            double xmin, double xmax,
+                            double* min, double* max);
+   static void find_extrema(const std::vector<CoordsArray>& functions, const array& x,
+                            double xmin, double xmax,
+                            double* min, double* max);
 
-   static void test(array x, array y, double xmin, double xmax);
+   static void test(array x, std::vector<array> y,                    
+                    std::vector<std::string> names,
+                    double xmin, double xmax);
 };
 
 #endif

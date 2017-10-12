@@ -8,18 +8,12 @@
 
 class ODESolver {
 public:
+   enum ODEFunction { QUADRATIC, Y_X, COS_X, RHO_X, E_X, FUNCTION_COUNT };
+   enum ODEMethod   { EULER, RK2, RK4, ANALYTIC, METHOD_COUNT };
    friend class Plotter;
 
-   ODESolver(int argc, char** argv);
+   ODESolver(ODEFunction f, int N, double min, double max, double x0, double y0);
    void integrate();
-
-   // specifies which choice of dy/dx to solve. 
-   // chosen via command line, defaults to QUADRATIC
-   enum ODEFunction { QUADRATIC, Y_X, COS_X, FUNCTION_COUNT };
-
-   // specifies which integration method to use.
-   // each one is called in turn by test_methods(), then the coords stored in an array
-   enum ODECoords { EULER, RK2, RK4, ANALYTIC, COORDS_COUNT };
 
 private:
    ODEFunction option;       // choice of initial ODE to solve
@@ -42,12 +36,11 @@ private:
    double dfdx(const double x, const double y) const;
    double f   (const double x) const;
 
-   CoordsArray euler() const;
-   CoordsArray rk2() const;
-   CoordsArray rk4() const;
+   CoordsArray euler(const array& x_values = {}) const;
+   CoordsArray rk2(const array& x_values = {}) const;
+   CoordsArray rk4(const array& x_values = {}) const;
    CoordsArray analytic() const;
    std::vector<CoordsArray> calculate_differences() const;
-   void get_arguments(int argc, char** argv);
    array get_x_values();
 };
 

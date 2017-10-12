@@ -16,7 +16,7 @@ class RootFinder {
 public:
    friend class Plotter;
 
-   RootFinder(int argc, char** argv);
+   RootFinder(RootFunction option, double e, double min, double max);
 
    void   test_methods ()                             const;
    void   plot_function()                             const;

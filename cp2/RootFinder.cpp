@@ -6,35 +6,16 @@
 #include "../global.h"
 #include "RootFinder.h"
 
-RootFinder::RootFinder(int argc, char** argv) {
+RootFinder::RootFinder(RootFunction option, double e, double min, double max) {
    // default values
-   this->function_option = CUBIC;
-   this->epsilon = 1e-7;
-   this->xmin = 0.0;
-   this->xmax = 2.0;
-
-   // tries to read input parameters
-   if (argc > 1) { // function option
-      int temp = std::stoi(argv[1]);
-      if (0 <= temp && temp < ROOT_FUNCTION_COUNT) {
-         this->function_option = static_cast<RootFunction>(temp);
-      } else {
-         printf("You can't put %d as the function choice. Pick one from %d-%d\n",
-                temp, 0, ROOT_FUNCTION_COUNT-1);
-         exit(1);
-      }
-   }
-   if (argc > 2) { // epsilon power
-      this->epsilon = std::stod(argv[2]);
-   }
-   if (argc > 4) { // xmin/max
-      this->xmin = std::stod(argv[3]);
-      this->xmax = std::stod(argv[4]);
-   }
+   this->function_option = option;
+   this->epsilon = e;
+   this->xmin = min;
+   this->xmax = max;
 
    // used to format printf
    this->precision = -static_cast<int>(log10(this->epsilon));
-   // 
+
    switch (this->function_option) {
       case CUBIC:       this->function_name = "cubic";       break;
       case EXPONENTIAL: this->function_name = "exponential"; break;

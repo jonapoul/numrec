@@ -5,7 +5,7 @@ PLOTFLAGS=-std=c++11 -I/usr/include/python2.7 -lpython2.7
 CP2_CPP := $(wildcard cp2/*.cpp)
 OBJ := $(addprefix obj/,$(notdir $(CP2_CPP:.cpp=.o)))
 
-default: checkpoint1 checkpoint2
+default: checkpoint2
 
 checkpoint1: cp1/cp1.cpp obj/global.o
 	$(CC) $(LDFLAGS) $^ -o bin/$@ $(PLOTFLAGS)

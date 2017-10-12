@@ -6,31 +6,24 @@
 #include "Plotter.h"
 #include "ODESolver.h"
 
-ODESolver::ODESolver(int argc, char** argv) {
-   // defaults
-   this->option = QUADRATIC;
-   this->N_points = 1e4;
-   this->xmin = -3;
-   this->xmax =  3;
-   this->x0 = 0;
-   this->y0 = 1;
+ODESolver::ODESolver(ODEFunction f, int N, double min, double max, double x_0, double y_0) {
+   this->option = f;
+   this->N_points = N;
+   this->xmin = min;
+   this->xmax = max;
+   this->x0 = x_0;
+   this->y0 = y_0;
+   this->delta = (max - min)/(double)N;
 
-   // try to read command line params
-   get_arguments(argc, argv);
-
-   // calculate dx value for spacing out integrated points
-   this->delta = (xmax - xmin)/(double)N_points;
-
-   switch (option) {
-      case QUADRATIC:      this->option_name = "dy/dx = 1-6x+3x^2"; break;
-      case Y_X:            this->option_name = "dy/dx = y(x)";      break;
-      case COS_X:          this->option_name = "dy/dx = cos(x)";    break;
-      case FUNCTION_COUNT: this->option_name = "unknown";           break;
+   switch (f) {
+      case QUADRATIC: this->option_name = "dy/dx = 1-6x+3x^2"; break;
+      case Y_X:       this->option_name = "dy/dx = y(x)";      break;
+      case COS_X:     this->option_name = "dy/dx = cos(x)";    break;
+      default:        this->option_name = "unknown";           break;
    }
 
-   // initialising the coordinate arrays that the 3 different integration methods
-   // will store results in
-   this->coords = std::vector<CoordsArray>(COORDS_COUNT);
+   // setup coordinate arrays that the 3 different integration methods will store results in
+   this->coords = std::vector<CoordsArray>(METHOD_COUNT);
 }
 
 double ODESolver::dfdx(double x, double y) const {
@@ -75,10 +68,11 @@ void ODESolver::integrate() {
    this->differences = calculate_differences();
 }
 
-CoordsArray ODESolver::euler() const {
+CoordsArray ODESolver::euler(const array& x_values) const {
    CoordsArray output;
    output.name = "Euler";
-   output.x = this->x_range;
+   // if the user specifies a range of x values to use, take that instead
+   output.x = (x_values.size() > 0) ? x_values : this->x_range;
    output.y = array(this->x_size);
    output.y[this->x0_index] = y0;
 
@@ -93,10 +87,10 @@ CoordsArray ODESolver::euler() const {
    return output; 
 }
 
-CoordsArray ODESolver::rk2() const {
+CoordsArray ODESolver::rk2(const array& x_values) const {
    CoordsArray output;
    output.name = "RK2";
-   output.x = this->x_range;
+   output.x = (x_values.size() > 0) ? x_values : this->x_range;
    output.y = array(this->x_size);
    output.y[x0_index] = y0;
 
@@ -116,10 +110,10 @@ CoordsArray ODESolver::rk2() const {
    return output;
 }
 
-CoordsArray ODESolver::rk4() const {
+CoordsArray ODESolver::rk4(const array& x_values) const {
    CoordsArray output;
    output.name = "RK4";
-   output.x = this->x_range;
+   output.x = (x_values.size() > 0) ? x_values : this->x_range;
    output.y = array(this->x_size);
    output.y[x0_index] = y0;
 
@@ -159,7 +153,7 @@ CoordsArray ODESolver::analytic() const {
 }
 
 std::vector<CoordsArray> ODESolver::calculate_differences() const {
-   std::vector<CoordsArray> diffs(COORDS_COUNT-1);
+   std::vector<CoordsArray> diffs(METHOD_COUNT-1);
    for (int i = 0; i < ANALYTIC; i++) {
       // initialise each array
       diffs[i].x    = this->coords[EULER].x; // copy across precalculated range of x
@@ -174,32 +168,6 @@ std::vector<CoordsArray> ODESolver::calculate_differences() const {
       }
    }
    return diffs;
-}
-
-void ODESolver::get_arguments(int argc, char** argv) {
-   std::string name;
-   std::string valuestr;
-   for (int i = 1; i < argc; i++) {
-      // splits argv[i] into parameter name and its value as a string
-      parse(argv[i], &name, &valuestr);
-
-      // check whether the input name is specified, and apply its value
-      if (name == "func") {
-         int temp = std::stoi(valuestr);
-         if (0 <= temp && temp <= FUNCTION_COUNT)
-            this->option = static_cast<ODEFunction>(temp);
-      } else if (name == "N") {
-         this->N_points = std::stoi(valuestr);
-      } else if (name == "xmin") {
-         this->xmin = std::stod(valuestr);
-      } else if (name == "xmax") {
-         this->xmax = std::stod(valuestr);
-      } else if (name == "x0") {
-         this->x0 = std::stod(valuestr);
-      } else if (name == "y0") {
-         this->y0 = std::stod(valuestr);
-      }
-   }
 }
 
 array ODESolver::get_x_values() {
