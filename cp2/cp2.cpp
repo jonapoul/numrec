@@ -9,7 +9,7 @@
 #include "ODESolver.h"
 
 // checkpoint
-#include "ChargeDistribution.h"
+#include "PNJunction.h"
 #include "Integrator.h"
 #include "Plotter.h"
 
@@ -42,15 +42,15 @@ int main() {
 
 #if (CURRENT == 3) /*Checkpoint 2 - PN Junctions*/
 
-   int N_points = 1000;                                  // number of points
-   double x_boundaries[5] = {-2.0, -1.0, 0.0, 1.0, 2.0}; // limits of rho(x)
+   int N_points = 1000;                                // number of points
+   double rho_limits[5] = {-2.0, -1.0, 0.0, 1.0, 2.0}; // limits of rho(x)
    
    // integration boundary conditions
    double x0 = -2.0;
    double E0 =  0.0;
    double V0 =  0.0;
 
-   ChargeDistribution cd(N_points, x_boundaries, x0, E0, V0);
+   PNJunction cd(N_points, rho_limits, x0, E0, V0);
    cd.initialise_points(); // calculating values of rho(x) at each point
 
    Integrator ig(&cd);

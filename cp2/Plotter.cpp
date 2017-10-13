@@ -6,7 +6,7 @@
 #include "Plotter.h"
 #include "RootFinder.h"
 #include "ODESolver.h"
-#include "ChargeDistribution.h"
+#include "PNJunction.h"
 
 #include <matplotlib-cpp/matplotlibcpp.h>
 namespace plt = matplotlibcpp; 
@@ -103,7 +103,7 @@ void Plotter::plot_differences(const ODESolver& ode) {
    plt::show();
 }
 
-void Plotter::plot(const ChargeDistribution& cd) {
+void Plotter::plot(const PNJunction& cd) {
    std::string colours = "bgrmyc";
    std::string format = " -";
    for (size_t i = 0; i < cd.E_points.size(); i++) {

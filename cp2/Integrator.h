@@ -3,16 +3,16 @@
 
 #include "../global.h"
 #include "Points.h"
-#include "ChargeDistribution.h"
+#include "PNJunction.h"
 
 class Integrator {
 public:
-   Integrator(ChargeDistribution* chargedist);
+   Integrator(PNJunction* chargedist);
    void integrate_for_E();
    void integrate_for_V();
 
 private:
-   ChargeDistribution* cd;
+   PNJunction* cd;
    double xmax;
    double xmin;
    double delta;

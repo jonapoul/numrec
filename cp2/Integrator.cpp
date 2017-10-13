@@ -1,8 +1,8 @@
 #include "../global.h"
 #include "Integrator.h"
-#include "ChargeDistribution.h"
+#include "PNJunction.h"
 
-Integrator::Integrator(ChargeDistribution* chargedist) {
+Integrator::Integrator(PNJunction* chargedist) {
    cd    = chargedist;
    xmax  = cd->limit4;
    xmin  = cd->limit0;
@@ -71,23 +71,19 @@ Points Integrator::rk4(int ode) {
 
    // calculate y values from x0 up to xmax
    for (int i = x0index+1; i < cd->N_points; i++) {
-      double x_prev = x[i-1];
-      double y_prev = y[i-1];
-      double k1 = dfdx(x_prev,             ode);
-      double k2 = dfdx(x_prev + delta/2.0, ode);
-      double k3 = dfdx(x_prev + delta/2.0, ode);
-      double k4 = dfdx(x_prev + delta,     ode);
-      y[i] = y_prev + delta*(k1/6.0 + k2/3.0 + k3/3.0 + k4/6.0);
+      double k1 = dfdx(x[i-1],             ode);
+      double k2 = dfdx(x[i-1] + delta/2.0, ode);
+      double k3 = dfdx(x[i-1] + delta/2.0, ode);
+      double k4 = dfdx(x[i-1] + delta,     ode);
+      y[i] = y[i-1] + delta*(k1/6.0 + k2/3.0 + k3/3.0 + k4/6.0);
    }
    // same from x0 down to xmin
    for (int i = x0index-1; i >= 0; i--) {
-      double x_prev = x[i+1];
-      double y_prev = y[i+1];
-      double k1 = dfdx(x_prev,             y_prev);
-      double k2 = dfdx(x_prev - delta/2.0, y_prev - k1*delta/2.0);
-      double k3 = dfdx(x_prev - delta/2.0, y_prev - k2*delta/2.0);
-      double k4 = dfdx(x_prev - delta,     y_prev - k3*delta);
-      y[i] = y_prev - delta*(k1/6.0 + k2/3.0 + k3/3.0 + k4/6.0);
+      double k1 = dfdx(x[i+1],             ode);
+      double k2 = dfdx(x[i+1] - delta/2.0, ode);
+      double k3 = dfdx(x[i+1] - delta/2.0, ode);
+      double k4 = dfdx(x[i+1] - delta,     ode);
+      y[i] = y[i+1] - delta*(k1/6.0 + k2/3.0 + k3/3.0 + k4/6.0);
    }
       
    std::string prefix = (ode == dEdx_eq_RHO) ? "E" : "V";
@@ -97,11 +93,8 @@ Points Integrator::rk4(int ode) {
 
 double Integrator::dfdx(double x, int ode) {
    switch (ode) {
-      case dEdx_eq_RHO:
-         return cd->rho(x);
-      case dVdx_eq_NegE:
-         return 0;
-      default:
-         return 0;
+      case dEdx_eq_RHO:  return cd->rho(x);
+      case dVdx_eq_NegE: return 0;
+      default:           return 0;
    }
 }

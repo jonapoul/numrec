@@ -2,9 +2,9 @@
 
 #include "../global.h"
 #include "Points.h"
-#include "ChargeDistribution.h"
+#include "PNJunction.h"
 
-ChargeDistribution::ChargeDistribution(int N, double* boundaries, double x_0, double E_0, double V_0) {
+PNJunction::PNJunction(int N, double* boundaries, double x_0, double E_0, double V_0) {
    this->limit0   = boundaries[0];  // xmin
    this->limit1   = boundaries[1];
    this->limit2   = boundaries[2];
@@ -30,7 +30,7 @@ ChargeDistribution::ChargeDistribution(int N, double* boundaries, double x_0, do
    };
 }
 
-void ChargeDistribution::initialise_points() {
+void PNJunction::initialise_points() {
    // finding where x0 fits into the range and saving that array index
    x0index = (x0-limit0)/(limit4-limit0) * N_points;
 
@@ -41,12 +41,12 @@ void ChargeDistribution::initialise_points() {
    }
 }
 
-double ChargeDistribution::rho_shape(double x_0, double x_1, double x) const {
+double PNJunction::rho_shape(double x_0, double x_1, double x) const {
    double z = (x-x_0)/(x_1-x_0);
    return pow(z,2) * (exp(1-z)-1) / 0.18;
 }
 
-double ChargeDistribution::rho(double x) const {
+double PNJunction::rho(double x) const {
    if      (x < limit1) return  0.0;
    else if (x < limit2) return  rho_shape(limit1, limit2, x);
    else if (x < limit3) return -rho_shape(limit3, limit2, x);

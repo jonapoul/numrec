@@ -6,14 +6,14 @@
 
 class RootFinder;
 class ODESolver;
-class ChargeDistribution;
+class PNJunction;
 
 class Plotter {
 public:
    void plot            (const RootFinder& rf);
    void plot            (const ODESolver& ode);
    void plot_differences(const ODESolver& ode);
-   void plot            (const ChargeDistribution& cd);
+   void plot            (const PNJunction& cd);
 
    static void find_extrema(const std::vector<array>& y_arrays, const array& x,
                             double xmin, double xmax,

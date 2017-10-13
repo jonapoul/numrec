@@ -7,14 +7,13 @@
 #include "../global.h"
 #include "Points.h"
 
-class ChargeDistribution {
+class PNJunction {
 public:
    friend class Plotter;
    friend class Integrator;
-   ChargeDistribution(int N, double* boundaries, double x_0, double E_0, double V_0);
-
+   
+   PNJunction(int N, double* boundaries, double x_0, double E_0, double V_0);
    void initialise_points();
-   double rho(double x) const;
 
    Points rho_points; 
    std::vector<Points> E_points;
@@ -35,6 +34,7 @@ private:
    double E0;   // boundary condition E(x0) = 0
    double V0;   // boundary condition V(x0) = 0
 
+   double rho(double x) const;
    double rho_shape(double x_0, double x_1, double x) const;
 };
 
