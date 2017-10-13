@@ -51,9 +51,8 @@ void Plotter::plot(const ODESolver& ode) {
    // formatting and plotting each line
    std::vector<char> colours = {'b', 'g', 'r', 'y', 'm', 'c'};
    std::string format = " .";
-   for (int i = 0; i < ODESolver::METHOD_COUNT; i++) {
+   for (int i = 0; i < METHOD_COUNT; i++) {
       format[0] = colours[i % colours.size()];
-      if (i == static_cast<int>(ODESolver::ANALYTIC)) format[1] = '-';
       plt::named_plot(ode.coords[i].name, ode.coords[i].x, ode.coords[i].y, format);
    }
 
@@ -82,10 +81,11 @@ void Plotter::plot_differences(const ODESolver& ode) {
    // formatting and plotting each line
    std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
    std::string format = " .";
-   for (int i = 0; i < ODESolver::ANALYTIC; i++) {
+   for (int i = 0; i < METHOD_COUNT; i++) {
       format[0] = colours[i % colours.size()];
       std::string name = ode.differences[i].name;
-      if (i == ODESolver::EULER) name += "/20";
+      if (i == EULER) name += "/20";
+      if (i == ANALYTIC) format[1] = '-';
       plt::named_plot(name, ode.differences[i].x, ode.differences[i].y, format);
    }
 
@@ -104,18 +104,24 @@ void Plotter::plot_differences(const ODESolver& ode) {
 }
 
 void Plotter::plot(const ChargeDistribution& cd) {
-   // double xmin = cd.x0, xmax = cd.x4;
-   // int N_points = 100;
-   // array x, y;
-   // cd.get_XY_values(xmin, xmax, N_points, &x, &y);
+   std::string colours = "bgrmyc";
+   std::string format = " -";
+   for (size_t i = 0; i < cd.E_points.size(); i++) {
+      format[0] = colours[i % colours.length()];
+      Points p = cd.E_points[i];
+      plt::named_plot(p.name, p.x, p.y, format);
+   }
 
-   // plt::named_plot("rho(x)", x, y, "r.");
-   // plt::xlabel("x");
-   // plt::ylabel("y");
-   // plt::xlim(xmin, xmax);
-   // plt::title("Charge Density and Electric Field");
-   // plt::legend();
-   // plt::show();
+   double xmin = cd.limit0, xmax = cd.limit4;
+   //double ymin, ymax;
+   //find_extrema(y, x, xmin, xmax, &ymin, &ymax);
+   plt::xlim(xmin, xmax);
+   //plt::ylim(ymin, ymax);
+   plt::ylabel("E(x)");
+   plt::xlabel("x");
+   plt::title("E(x) from 3 integration methods");
+   plt::legend();
+   plt::show();
 }
 
 
@@ -148,18 +154,20 @@ void Plotter::find_extrema(const std::vector<CoordsArray>& functions, const arra
 }
 
 void Plotter::test(array x, std::vector<array> y, 
-                   std::vector<std::string> names,
-                   double xmin, double xmax) {
-   std::vector<char> colours = {'b', 'g', 'r', 'm', 'y', 'c'};
-   std::string format = " .";
+                   std::vector<std::string> names) {
+   std::string colours = "bgrmyc";
+   std::string format = " -";
    for (int i = 0; i < (int)y.size(); i++) {
-      format[0] = colours[i % colours.size()];
+      format[0] = colours[i % colours.length()];
       plt::named_plot(names[i], x, y[i], format);
    }
-   plt::xlim(xmin, xmax);
+   double xmin = x[0], xmax = x[x.size()-1];
    double ymin, ymax;
    find_extrema(y, x, xmin, xmax, &ymin, &ymax);
+   plt::xlim(-2, 2);
    plt::ylim(ymin, ymax);
+   plt::ylabel("y");
+   plt::xlabel("x");
    plt::legend();
    plt::show();
 }

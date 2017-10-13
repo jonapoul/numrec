@@ -9,6 +9,9 @@
 
 typedef std::vector<double> array;
 
+enum { EULER, RK2, RK4, ANALYTIC, METHOD_COUNT };
+enum { dEdx_eq_RHO, dVdx_eq_NegE };
+
 struct CoordsArray {
    array x;
    array y;

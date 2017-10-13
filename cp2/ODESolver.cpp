@@ -6,7 +6,7 @@
 #include "Plotter.h"
 #include "ODESolver.h"
 
-ODESolver::ODESolver(ODEFunction f, int N, double min, double max, double x_0, double y_0) {
+ODESolver::ODESolver(int f, int N, double min, double max, double x_0, double y_0) {
    this->option = f;
    this->N_points = N;
    this->xmin = min;

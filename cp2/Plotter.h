@@ -23,8 +23,7 @@ public:
                             double* min, double* max);
 
    static void test(array x, std::vector<array> y,                    
-                    std::vector<std::string> names,
-                    double xmin, double xmax);
+                    std::vector<std::string> names);
 };
 
 #endif

@@ -6,17 +6,17 @@
 
 #include "../global.h"
 
+enum { QUADRATIC, Y_X, COS_X, FUNCTION_COUNT };
+
 class ODESolver {
 public:
-   enum ODEFunction { QUADRATIC, Y_X, COS_X, RHO_X, E_X, FUNCTION_COUNT };
-   enum ODEMethod   { EULER, RK2, RK4, ANALYTIC, METHOD_COUNT };
    friend class Plotter;
 
-   ODESolver(ODEFunction f, int N, double min, double max, double x0, double y0);
+   ODESolver(int f, int N, double min, double max, double x0, double y0);
    void integrate();
 
 private:
-   ODEFunction option;       // choice of initial ODE to solve
+   int option;               // choice of initial ODE to solve
    std::string option_name;  //
    int N_points;             // determines spacing along x axis
    double delta;             //
