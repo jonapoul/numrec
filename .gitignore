@@ -2,3 +2,4 @@ matrix
 *.sublime-workspace
 obj
 bin
+cp2/fig

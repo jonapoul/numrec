@@ -59,7 +59,7 @@ void RootFinder::test_methods() const {
 
    // print out what the results should have been
    // the range passed to get_actual_results is slightly wider to show edge roots
-   array actual_roots = get_actual_roots(this->xmin-1, this->xmax+1);
+   std::vector<double> actual_roots = get_actual_roots(this->xmin-1, this->xmax+1);
    printf("Actual roots = \n");
    for (auto r : actual_roots) 
       printf("\t%.*f\n", this->precision+1, r); 
@@ -136,8 +136,8 @@ double RootFinder::hybrid(double x1, double x2, int* n) const {
    else                           return 0.0;               // just in case
 }
 
-array RootFinder::get_actual_roots(double x_min, double x_max) const {
-   array roots = { };
+std::vector<double> RootFinder::get_actual_roots(double x_min, double x_max) const {
+   std::vector<double> roots = { };
    switch (this->function_option) {
       case CUBIC:
          roots = { -2.49771, 1.20296, 3.39475 };

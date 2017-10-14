@@ -37,7 +37,7 @@ private:
    double dfdx(const double x) const;
    int    sign(const double x) const { return (x > 0.0) ? 1 : -1; }
 
-   array  get_actual_roots(double xmin, double xmax) const;
+   std::vector<double>  get_actual_roots(double xmin, double xmax) const;
 };
 
 #endif

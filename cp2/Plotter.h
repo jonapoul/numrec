@@ -5,25 +5,33 @@
 #include "../global.h"
 
 class RootFinder;
-class ODESolver;
 class PNJunction;
+
+enum { SAVE_FIG, SHOW_FIG };
 
 class Plotter {
 public:
-   void plot            (const RootFinder& rf);
-   void plot            (const ODESolver& ode);
-   void plot_differences(const ODESolver& ode);
-   void plot            (const PNJunction& cd);
+   Plotter(int flag, char f_char);
+   void plot(const PNJunction& pn);
 
-   static void find_extrema(const std::vector<array>& y_arrays, const array& x,
-                            double xmin, double xmax,
-                            double* min, double* max);
-   static void find_extrema(const std::vector<CoordsArray>& functions, const array& x,
-                            double xmin, double xmax,
-                            double* min, double* max);
+private:
+   std::string colours = "bgrmyc";
+   std::string format;
+   std::string fig_dir = "./cp2/fig";
+   int output_flag;
 
-   static void test(array x, std::vector<array> y,                    
-                    std::vector<std::string> names);
+   void plot_rho(const PNJunction& pn);
+   void plot_E  (const PNJunction& pn);
+   void plot_V  (const PNJunction& pn);
+
+   void plot_E_differences(const PNJunction& pn);
+   void plot_V_differences(const PNJunction& pn);
+
+   void plot_euler(const PNJunction& pn);
+   void plot_rk2  (const PNJunction& pn);
+   void plot_rk4  (const PNJunction& pn);
+
+   inline std::string filepath(const char* filename) const;
 };
 
 #endif

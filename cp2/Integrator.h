@@ -12,15 +12,15 @@ public:
    void integrate_for_V();
 
 private:
-   PNJunction* cd;
-   double xmax;
-   double xmin;
+   PNJunction* pn;
    double delta;
+   int current_ode;
+   int current_algorithm;
 
-   Points euler(int ode);
-   Points rk2(int ode);
-   Points rk4(int ode);
-   double dfdx(double x, int ode);
+   Points euler();
+   Points rk2();
+   Points rk4();
+   double dfdx(double x);
 };
 
 #endif
