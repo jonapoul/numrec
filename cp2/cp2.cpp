@@ -1,3 +1,5 @@
+// 10/10
+
 #include <iostream>
 #include <string>
 #include <math.h>
@@ -12,7 +14,7 @@
 #include "Integrator.h"
 #include "Plotter.h"
 
-int main() {
+int main() {  
    int N_points = 50; // number of points
    double rho_limits[5] = {-2.0, -1.0, 0.0, 1.0, 2.0}; // limits of rho(x)
    
@@ -29,7 +31,8 @@ int main() {
    ig.integrate_for_V();   // same for dV/dx = -E(x)
 
    Plotter plotter(SAVE_FIG, '-'); // either SAVE_FIG or SHOW_FIG
-   plotter.plot(pn); // plot the results and compare
+   plotter.plot(pn);               // plot the results and compare
+   //plotter.plot_tau();
 
    return 0;
 }

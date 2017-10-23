@@ -14,11 +14,14 @@ public:
    Plotter(int flag, char f_char);
    void plot(const PNJunction& pn);
 
+   void plot_tau() const;
+   inline std::string filepath(const char* filename) const;
+
 private:
-   std::string colours = "bgrmyc";
-   std::string format;
-   std::string fig_dir = "./cp2/fig";
-   int output_flag;
+   std::string m_colours = "bgrmyc";
+   std::string m_format;
+   std::string m_fig_dir = "./cp2/fig";
+   int m_output_flag;
 
    void plot_rho(const PNJunction& pn);
    void plot_E  (const PNJunction& pn);
@@ -31,7 +34,6 @@ private:
    void plot_rk2  (const PNJunction& pn);
    void plot_rk4  (const PNJunction& pn);
 
-   inline std::string filepath(const char* filename) const;
 };
 
 #endif
