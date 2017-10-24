@@ -14,7 +14,6 @@ public:
    Plotter(int flag, char f_char);
    void plot(const PNJunction& pn);
 
-   void plot_tau() const;
    inline std::string filepath(const char* filename) const;
 
 private:

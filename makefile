@@ -7,7 +7,7 @@ CP3_CPP := $(wildcard cp3/*.cpp)
 CP2_OBJ := $(addprefix obj/,$(notdir $(CP2_CPP:.cpp=.o)))
 CP3_OBJ := $(addprefix obj/,$(notdir $(CP3_CPP:.cpp=.o)))
 
-default: checkpoint2 checkpoint3
+default: checkpoint3 checkpoint2
 
 checkpoint1: cp1/cp1.cpp obj/global.o
 	$(CC) $(LDFLAGS) $^ -o bin/$@ $(PLOTFLAGS)
