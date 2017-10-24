@@ -7,6 +7,7 @@
 #define MIN(x,y) (x<y)?x:y
 #define MAX(x,y) (x>y)?x:y
 #define GET_VARIABLE_NAME(var) (#var)
+#define __POSITION__ __FILE__,__FUNCTION__,__LINE__ // used when calling exit_if_false()
 
 
 // just to make it more obvious what I'm using them for (from CP3)
@@ -19,6 +20,6 @@ enum { EULER, RK2, RK4, ANALYTIC, METHOD_COUNT };
 enum { dEdx_eq_RHO, dVdx_eq_NegE };
 
 bool is_in_range(double min, double x, double max, double epsilon=1e-6);
-void exit_if_error(bool condition, const char* file, const char* func, int line);
+void exit_if_false(bool condition, const char* file, const char* func, int line);
 
 #endif
