@@ -1,69 +1,109 @@
+/*
+   9/10
+   Dont use so many typedefs, bit overbuilt
+*/
+
+// system headers
 #include <iostream>
 #include <vector>
 #include <math.h>
-#include <assert.h>
+#include <algorithm>
 
+// my headers
 #include "../global.h"
 #include "Minimiser.h"
 #include "DataPoints.h"
+#include "ModelFunctions.h"
 
-double chi_sq(const DataPoints& data,
-              const Params& params,
-              double (*model_function)(const double,const Params&)) {
+// MINUIT2
+#include "Math/IFunction.h"
+#include "Math/Functor.h"
+#include "Minuit2/Minuit2Minimizer.h"
+
+// global array of points from the data file, only used to access x/y values in chisq_2() for minuit
+DataPoints global_datapoints;
+
+// for Minimiser
+double chisq_1(const DataPoints& data, const Params& params, ModelFunction func) {
    double chisq = 0.0;
    for (size_t i = 0; i < data.x.size(); i++) {
-      double y_model =  model_function(data.x[i], params);
+      double y_model = func(data.x[i], params);
       double chi = (data.y[i] - y_model) / data.e[i];
-      chisq += pow(chi, 2.0);
+      chisq += chi * chi;
    }
    return chisq;
 }
 
-double linear(const double x, const Params& params) {
-   exit_if_false( params.size() >= 2, __POSITION__ );
-   const double m = params[0];
-   const double c = params[1];
-   return m*x + c;
-}
-
-double quadratic(const double x, const Params& params) {
-   exit_if_false( params.size() >= 3, __POSITION__);
+// for MINUIT2
+double chisq_2(const double* params) {
    const double a = params[0];
    const double b = params[1];
-   const double c = params[2];
-   return a + b*x + c*x*x;
-}
 
-double cubic(const double x, const Params& params) {
-   exit_if_false( params.size() >= 4, __POSITION__);
-   const double a = params[0];
-   const double b = params[1];
-   const double c = params[2];
-   const double d = params[3];
-   return a + b*x + c*x*x + d*x*x*x;
+   double chisq = 0.0;
+   for (size_t i = 0; i < global_datapoints.x.size(); i++) {
+      double y_model = a + b*global_datapoints.x[i];
+      double chi = (global_datapoints.y[i] - y_model) / global_datapoints.e[i];
+      chisq += chi * chi;
+   }
+   return chisq;
 }
 
 int main() {
-   std::string filename = "cp3/testData.txt";
-   DataPoints file_data(filename, "Data");              // read in data from file and store them in DataPoints object
+   const double epsilon = 1e-9;
+   const size_t max_iterations = 1e5;
 
-   Minimiser m(file_data);                              // initialise a Minimiser engine
-   m.set_function_to_minimise("Chi-squared", &chi_sq);  // function that we're trying to minimise by changing the parameters
-   m.set_model_function(&linear);                       // function that we're fitting the data to
-   m.set_epsilon(1e-7);                                 // minimum acceptable error in minimise()
-   m.set_max_iterations(10000);                          // limit the iteration count
+   printf("\n\n----------------------STARTING MY MINIMISATION----------------------\n");
+   const std::string filename = "/home/jon/numrec/cp3/datasets/testData.txt";
+   const DataPoints file_data(filename, "Data");   // read in data from file
 
-   double lim = 0.5;
-   Params upper_linear = { lim,  lim};
-   Params lower_linear = {-lim, -lim};
-   m.set_param_limits(upper_linear, lower_linear);      // limits of minimisation search for each parameter
+   Minimiser m(file_data);                         // initialise a Minimiser engine
+   m.set_function_to_minimise(chisq_1);            // function that we're minimising by fitting the parameters
+   m.set_model_function(linear);                   // function that we're fitting the data to
+   m.set_epsilon(epsilon);                         // minimum acceptable error in minimise()
+   m.set_max_iterations(max_iterations);           // limit the iteration count
+   m.set_initial_grid_search_volumes(1e2);         // how many grid volumes to check along each param axis
 
-   m.minimise();                                        // actually do the work
-   Params linear_params = m.get_final_parameters();      // retrieve the resulting parameters that minimise the function
-   DataPoints linear_data(file_data.x, linear_params, "Linear", &linear);
+   const Params upper = { 1.1,  0.1 }; 
+   const Params lower = { 0.9, -0.1 };
+   m.set_param_limits(upper, lower);               // limits of initial grid search for each parameter
+
+   m.minimise();                                   // actually do the work
+   Params final_params = m.get_final_parameters(); // retrieve the resulting parameters that minimise chisq
+
+   const size_t N_points = 1e3;
+   const XArray smooth_x = generate_smooth_x_values(file_data.x, N_points);
+   const DataPoints fitted_points(smooth_x, final_params, m.model_name(), m.model()); 
+
+   m.plot({file_data, fitted_points});             // plot the line against datapoints
+   m.find_parameter_errors(final_params);          // calculate/plot how chisq changes as we vary each param in turn
+   printf("-----------------------ENDING MY MINIMISATION-----------------------\n\n\n\n");
 
 
-   m.plot({file_data, linear_data}); // plot the line against datapoints
+
+
+   printf("-------------------STARTING MINUIT2 MINIMISATION--------------------\n");
+   global_datapoints = file_data; // accessed in chisq_2()
+   ROOT::Math::Minimizer* min = new ROOT::Minuit2::Minuit2Minimizer("minimize"); 
+
+   // minimiser settings
+   min->SetMaxFunctionCalls(max_iterations); 
+   min->SetTolerance(epsilon);
+   min->SetPrintLevel(1); // increase this to print out more verbose results
+
+   ROOT::Math::Functor function(&chisq_2, 2); // 2 parameters 
+   min->SetFunction(function);
+
+   double variable[] = { 1.0,  0.0 };  // starting point
+   double step[]     = { 1e-3, 1e-3 }; // initial step sizes
+   min->SetVariable(0, "a", variable[0], step[0]);
+   min->SetVariable(1, "b", variable[1], step[1]);
+
+   // do the minimization
+   min->Minimize(); 
+   
+   printf("Minimum chisq = %f\n", min->MinValue());
+   delete min;   
+   printf("--------------------ENDING MINUIT2 MINIMISATION--------------------\n\n\n");
 
    return 0;
 }

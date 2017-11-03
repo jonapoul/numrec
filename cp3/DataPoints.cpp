@@ -1,9 +1,13 @@
 #include "../global.h"
 #include "DataPoints.h"
 
+DataPoints::DataPoints() {
+   //blank
+}
+
 DataPoints::DataPoints(const std::string& filename, const std::string& dataset_name) {
    std::ifstream file(filename);
-   exit_if_false(file.good(), __POSITION__);
+   EXIT_IF_FALSE( file.good() );
    std::string temp_str;
    while (std::getline(file, temp_str)) {
       std::stringstream ss(temp_str);
@@ -24,24 +28,20 @@ DataPoints::DataPoints(const DataPoints& dp)
 DataPoints::DataPoints(const XArray& X, 
                        const Params& params, 
                        const std::string& dataset_name,
-                       double(*function)(const double,const Params&) ) {
+                       ModelFunction model_function) {
    x = X;
    y.resize(x.size(), 0.0);
    e.resize(x.size(), 0.0);
 
-   std::stringstream ss;
-   ss.precision(3);
-   ss << dataset_name << "; params=[";
-   for (size_t i = 0; i < params.size(); i++) {
-      char buf[50];
-      snprintf(buf, sizeof(buf)-1, "%.3e", params[i]);
-      ss << buf;
-      if (i != params.size()-1)
-         ss << ", ";
-   }
-   ss << "]";
-   name = ss.str();
+   name = dataset_name;
    for (size_t i = 0; i < x.size(); i++) {
-      y[i] = function(x[i], params);
+      y[i] = model_function(x[i], params);
    }
+}
+
+DataPoints::DataPoints(const size_t N_points) {
+   x.resize(N_points, 0);
+   y.resize(N_points, 0);
+   e.resize(N_points, 0);
+   name = "";
 }

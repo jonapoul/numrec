@@ -9,15 +9,20 @@ class Minimiser {
 public:
    Minimiser(const DataPoints& data);
 
-   Params get_final_parameters() const       { return m_params_curr; }
-   void set_max_iterations(size_t max)       { m_iterations_max = max; m_iterations_curr = 0; }
-   void set_epsilon(double e)                { m_epsilon = e; }
-   void set_model_function(double (*f)(const double,const Params&)) { model_function = f; }
-   void set_function_to_minimise(const std::string& function_name,
-                                 double(*f)(const DataPoints&,const Params&,double(*model_function)(const double,
-                                                                                                    const Params&)));
+   Params get_final_parameters() const            { return m_params_curr; }
+   ModelFunction model()                          { return model_function; }
+   std::string model_name() const                 { return m_model_func_name; }
+
+   void set_max_iterations(size_t max)            { m_iterations_max = max; m_iterations_curr = 0; }
+   void set_epsilon(double e)                     { m_epsilon = e; }
+   void set_initial_grid_search_volumes(size_t n) { m_N_grid_volumes = n; } 
+
    void set_param_limits(const Params&, const Params&);
-   void minimise();
+   void set_function_to_minimise_implementation(FunctionToMinimise f, const std::string& function_name);
+   void set_model_function_implementation(ModelFunction f, const std::string& function_name);
+
+   void minimise();   // does most of the legwork in here
+
    void n_dimensional_grid_search(Params params, 
                                   const Params& pmax,
                                   const Params& pmin,
@@ -31,23 +36,22 @@ public:
                         /*output*/ double* min_value, 
                         /*output*/ Params* params_at_min);
    void plot(const std::vector<DataPoints>& points);
-   void reset();
+   void find_parameter_errors(const Params& fitted_params);
 
 private:
-   double (*function_to_minimise)(const DataPoints&,   // pointer to the function we're minimising for (chi squared)
-                                  const Params&,
-                                  double(*model_function)(const double,
-                                                          const Params&));
-   std::string m_function_name;
-   double (*model_function)(const double,
-                            const Params&);          // function that we're calculating points for (linear/cubic/whatever)
-   DataPoints m_datapoints;                          // x, y values of dataset to minimise params for
-   size_t m_iterations_curr;                         // current count of completed iterations
-   size_t m_iterations_max;                          // max times to iterate on the params
-   double m_epsilon;                                 // error cceptability limit
-   Params m_params_curr;                             // current (iterated) values of parameters
-   Params m_params_max;                              // given limits of parameters to work within
-   Params m_params_min;
+   FunctionToMinimise function_to_minimise;  // pointer to the function we're minimising (chi squared)
+   std::string m_function_name;              // eg "chi squared"
+   ModelFunction model_function;             // function ptr to output y as a function of x (linear/cubic/whatever)
+   std::string m_model_func_name;            // eg "linear"
+   std::string m_model_description;          // eg "y = a + b*x"
+   DataPoints m_datapoints;                  // x, y values of dataset to minimise params for
+   size_t m_iterations_curr;                 // current count of completed iterations
+   size_t m_iterations_max;                  // max times to iterate on the params
+   double m_epsilon;                         // error acceptability limit
+   Params m_params_curr;                     // current (iterated) values of parameters
+   Params m_params_max;                      // given limits of parameters to work within
+   size_t m_N_grid_volumes;                  // number of volumes to check along each dof during initial grid search
+   Params m_params_min;                      // parameters at minimum value
 };
 
 #endif

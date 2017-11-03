@@ -1,5 +1,5 @@
 double random_in_range(double min_val, double max_val) {
-    return min_val + (max_val-min_val) * (double)rand()/RAND_MAX ;
+    return min_val + (max_val-min_val) * (double)rand()/RAND_MAX;
 }
 
 double muon_pdf(double x, double tau) {
