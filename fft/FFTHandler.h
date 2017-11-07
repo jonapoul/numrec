@@ -6,36 +6,29 @@
 
 class FFTHandler {
 public:
-   double* read_pgm_file(const char*   filename,
-                   /*output*/  size_t* N_rows,
-                   /*output*/  size_t* N_cols);
-   void show_as_images(const double* orig_pix,
-                       const double* trans_pix,
-                       const size_t  cols,
-                       const size_t  rows);
-   fftw_complex* get_row(const double* pixels,
-                         const size_t  N_cols,
-                         const size_t  row_index);
-   fftw_complex* row_fft(      fftw_complex* row_pixels,
-                         const size_t        length,
-                         const bool          is_forward=true);
-   fftw_complex* conjugate(fftw_complex* input,
-                           const size_t  N);
+   std::string filename; // image file in question
+   size_t height; // number of rows
+   size_t width; // number of columns
+   double* pixels; // entire image
+   fftw_complex** rows; // array of each row
+   std::vector<size_t> estimated_lines; // lines that should be shifted
+
+public:
+   FFTHandler(const char* fn);
+   ~FFTHandler();
+
+   fftw_complex* allocate(const size_t N);
+   void read_pgm_file();
+   void extract_rows();
+   fftw_complex* fft_row(fftw_complex* row,
+                         const int fft_direction);
+   void conjugate(fftw_complex* row);
    fftw_complex* multiply(fftw_complex* a,
-                          fftw_complex* b,
-                          const size_t  N);
-   double min_value(fftw_complex* a,
-                    const size_t  N);
-   fftw_complex* xcorr(fftw_complex* a,
-                       fftw_complex* b,
-                       const size_t  N);
-   void copy(fftw_complex*  input,
-             const size_t   N,
-             fftw_complex** output);
-   double sum_diffs_sq(fftw_complex* a,
-                       const size_t  N,
-            /*output*/ double*       left,
-            /*output*/ double*       right);
+                          fftw_complex* b);
+   void centre_on_0(fftw_complex* a);
+   double peak(fftw_complex* a,
+               const std::vector<double>& x);
+   fftw_complex* xcorr(const size_t row_index);
 };
 
 #endif

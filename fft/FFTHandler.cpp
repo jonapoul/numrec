@@ -9,32 +9,52 @@
 #include "../global.h"
 #include "FFTHandler.h"
 
-double* FFTHandler::read_pgm_file(const char*   filename, 
-                                        size_t* N_rows, 
-                                        size_t* N_cols) {
+FFTHandler::FFTHandler(const char* fn) : filename(fn) { 
+   estimated_lines = {
+      5, 10, 16, 24, 28, 33, 34, 36, 49, 51, 59, 71, 78, 81, 84, 90, 97, 98, 113, 118, 128, 198, 
+      208, 227, 230, 244, 247, 255, 274, 288, 290, 314, 316, 344, 360, 361, 362, 366, 392, 415, 
+      434, 435, 443, 453, 465, 468, 469, 472, 485, 498, 500, 507
+   };
+}
+
+FFTHandler::~FFTHandler() {
+   delete[] pixels;
+   for (size_t r = 0; r < height; r++) { 
+      fftw_free(rows[r]);
+   }
+   delete[] rows;
+}
+
+fftw_complex* FFTHandler::allocate(const size_t N) {
+   fftw_complex* output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
+   return output;
+}
+
+void FFTHandler::read_pgm_file() {
+   size_t pos = filename.find_last_of(".");
+   std::string extension = filename.substr(pos+1);
+   if (extension != "pgm") {
+      printf("%s needs to be a .pgm file!\n", filename.c_str());
+      exit(1);
+   }
+
    std::ifstream infile(filename, std::ios::binary);
    std::string inputLine;
-
-   // First line : file version
+   getline(infile, inputLine);   // file version
+   getline(infile, inputLine);   // two commented lines
    getline(infile, inputLine);
-
-   // two commented lines
-   getline(infile, inputLine);
-   getline(infile, inputLine);
-
-   // width, height, number of possible pixel values
-   getline(infile, inputLine);
+   
+   getline(infile, inputLine);   // width, height, range of pixel values
    std::stringstream ss(inputLine);
-   ss >> *N_cols >> *N_rows;
+   ss >> width >> height;
    int max_bits;
    ss >> max_bits;
-   printf("Rows = %zu Cols = %zu\n", *N_rows, *N_cols);
    int bit_depth = log2(max_bits + 1.0);
-   printf("Bit depth = %d\n", bit_depth);
+   printf("height    = %zu\nwidth     = %zu\nbit depth = %d\n", height, width, bit_depth);
 
    // allocate 2D pixel array
-   const size_t pixel_count = (*N_rows) * (*N_cols);
-   double* pixels = new double[pixel_count];
+   const size_t pixel_count = height * width;
+   pixels = new double[pixel_count];
 
    // pick out every character in the pgm file
    size_t i = 0;
@@ -48,122 +68,98 @@ double* FFTHandler::read_pgm_file(const char*   filename,
          pixels[i++] = 10; // 10 = ascii code for '\n'
       }
    }
-
    infile.close();   
-   return pixels; 
 }
 
-fftw_complex* FFTHandler::get_row(const double* pixels,
-                                  const size_t  N_cols,
-                                  const size_t  row_index) {
-   fftw_complex* row_pixels = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N_cols);
-   size_t j = row_index * N_cols;
-   for (size_t i = 0; i < N_cols; i++) {                        
-      row_pixels[i][0] = pixels[j++];
-      row_pixels[i][1] = 0.0; // imaginary signal = 0 all across row
-   }
-   return row_pixels;
-}
-
-fftw_complex* FFTHandler::row_fft(      fftw_complex* row_pixels,
-                                  const size_t        length,
-                                  const bool          is_forward) {
-   fftw_complex* out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * length);
-   int sign = is_forward ? FFTW_FORWARD : FFTW_BACKWARD;
-   fftw_plan p = fftw_plan_dft_1d(length, row_pixels, out, sign, FFTW_ESTIMATE);
-
-   fftw_execute(p);
-   
-   fftw_destroy_plan(p);
-
-   if (!is_forward) {
-      for (size_t i = 0; i < length; i++) {
-         out[i][0] /= (double)length;
-         out[i][1] /= (double)length;
+void FFTHandler::extract_rows() {
+   rows    = new fftw_complex*[height];
+   size_t i = 0;
+   for (size_t r = 0; r < height; r++) {
+      rows[r]    = allocate(width);
+      for (size_t c = 0; c < width; c++) {
+         rows[r][c][0] = pixels[i++];
+         rows[r][c][1] = 0.0;
       }
    }
-   return out;
+}
+
+fftw_complex* FFTHandler::fft_row(fftw_complex* row,
+                                  const int fft_direction) {
+   fftw_complex* transformed = allocate(width);
+   fftw_plan p = fftw_plan_dft_1d(width, row, transformed, fft_direction, FFTW_ESTIMATE);
+   fftw_execute(p);
+   fftw_destroy_plan(p);
+   return transformed;
+}
+
+void FFTHandler::conjugate(fftw_complex* row) {
+   for (size_t i = 0; i < width; i++) {
+      row[i][1] *= -1.0;
+   }
 }
 
 fftw_complex* FFTHandler::multiply(fftw_complex* a,
-                                   fftw_complex* b,
-                                   const size_t  N) {
-   fftw_complex* result = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
-   for (size_t i = 0; i < N; i++) {
+                                   fftw_complex* b) {
+   fftw_complex* multiplied = allocate(width);
+   for (size_t i = 0; i < width; i++) {
       const double A = a[i][0];
       const double B = a[i][1];
       const double C = b[i][0];
       const double D = b[i][1];
-      result[i][0] = A*C - B*D;
-      result[i][1] = B*C + A*D;
+      multiplied[i][0] = A*C - B*D;
+      multiplied[i][1] = B*C + A*D;
    }
-   return result;
+   return multiplied;
 }
 
-fftw_complex* FFTHandler::conjugate(fftw_complex* input,
-                                    const size_t  N) {
-   fftw_complex* output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
-   for (size_t i = 0; i < N; i++) {
-      output[i][0] = input[i][0];
-      output[i][1] = input[i][1] * -1.0;
+void FFTHandler::centre_on_0(fftw_complex* a) {
+   fftw_complex* temp = allocate(width);
+   for (size_t i = 0; i < width/2; i++) {
+      temp[i][0] = a[i + width/2][0];
+      temp[i][1] = a[i + width/2][1];
    }
-   return output;
+   for (size_t i = width/2; i < width; i++) {
+      temp[i][0] = a[i - width/2][0];
+      temp[i][1] = a[i - width/2][1];
+   }
+   for (size_t i = 0; i < width; i++) {
+      a[i][0] = temp[i][0];
+      a[i][1] = temp[i][1];
+   }
+   fftw_free(temp);
 }
 
-double FFTHandler::min_value(fftw_complex* a,
-                             const size_t  N) {
-   double minimum = 1e200;
-   for (size_t i = 0; i < N; i++) {
-      if (a[i][0] < minimum) minimum = a[i][0];
+double FFTHandler::peak(fftw_complex* a, 
+                        const std::vector<double>& x) {
+   double max_height = -1e200;
+   double peak_position;
+   for (size_t i = 0; i < width; i++) {
+      if (a[i][0] > max_height) {
+         max_height = a[i][0];
+         peak_position = x[i];
+      }
    }
-   return minimum;
+   return peak_position;
 }
 
-fftw_complex* FFTHandler::xcorr(fftw_complex* a,
-                                fftw_complex* b,
-                                const size_t  N) {
-   fftw_complex* b_conj     = conjugate(b, N);
-   fftw_complex* fft_a      = row_fft(a,      N, true);
-   fftw_complex* fft_b      = row_fft(b_conj, N, true);
-   fftw_complex* multiplied = multiply(fft_a, fft_b, N);
-   fftw_complex* inverse    = row_fft(multiplied, N, false);
+fftw_complex* FFTHandler::xcorr(const size_t row_index) {
+   EXIT_IF_FALSE(row_index > 0);
+   auto ft_curr = fft_row(rows[row_index],   FFTW_FORWARD);
+   auto ft_prev = fft_row(rows[row_index-1], FFTW_FORWARD);
+   conjugate(ft_prev);
+   fftw_complex* multiplied = multiply(ft_curr, ft_prev);
 
-   double min_val = min_value(inverse, N);
-   for (size_t i = 0; i < N; i++) {
-      inverse[i][0] -= min_val;
+   fftw_complex* inversed = fft_row(multiplied, FFTW_BACKWARD);
+   for (size_t i = 0; i < width; i++) {
+      inversed[i][0] /= (double)width;
+      inversed[i][1] /= (double)width;
    }
 
-   fftw_free(b_conj);
-   fftw_free(fft_a);
-   fftw_free(fft_b);
+   centre_on_0(inversed); // shifting the phase of the periodic function, so the peak is somewhere near the middle
+
    fftw_free(multiplied);
-   return inverse;
-}
+   fftw_free(ft_curr);
+   fftw_free(ft_prev);
 
-void FFTHandler::copy(fftw_complex*  input,
-                      const size_t   N,
-                      fftw_complex** output) {
-   for (size_t i = 0; i < N; i++) {
-      (*output)[i][0] = input[i][0];
-      (*output)[i][1] = input[i][1];
-   }
-}
-
-double FFTHandler::sum_diffs_sq(fftw_complex* a,
-                                const size_t  N,
-                                double*       left,
-                                double*       right) {
-   double leftsum  = 0.0;
-   double rightsum = 0.0;
-   double sum      = 0.0;
-   for (size_t i = 1; i < N; i++) {
-      double diff = abs(a[i][0] - a[i-1][0]) + abs(a[i][1] - a[i-1][1]);
-      diff = diff;
-      sum += diff;
-      if (i < N/2) leftsum  += diff;
-      else         rightsum += diff;
-   }
-   *left  = leftsum;
-   *right = rightsum;
-   return sum;
+   return inversed;
 }

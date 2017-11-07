@@ -13,7 +13,7 @@ using namespace cimg_library;
    FFT
 */
 void fftw_complex_to_vectors(const fftw_complex* c, const size_t N, std::vector<double>* re, std::vector<double>* im);
-std::vector<double> generate_smooth_x_values(const double xmin, const double xmax, const double dx);
+std::vector<double> increment_x_values(const double xmin, size_t N, double dx=1.0);
 bool is_in_array(const size_t x, const std::vector<size_t>& arr);
 
 /* 

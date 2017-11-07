@@ -26,8 +26,7 @@ XArray generate_smooth_x_values(const XArray& xinput, const size_t N_points) {
    return output;
 }
 
-std::vector<double> generate_smooth_x_values(const double xmin, const double xmax, const double dx) {
-   const size_t N = (xmax - xmin) / dx;
+std::vector<double> increment_x_values(const double xmin, size_t N, double dx) {
    std::vector<double> x_values(N);
    for (size_t i = 0; i < N; i++) {
       x_values[i] = xmin + i*dx;
