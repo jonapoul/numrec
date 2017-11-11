@@ -1,23 +1,17 @@
 #include "../global.h"
-#include "FFTHandler.h"
-#include "FFTPlotter.h"
 
 int main() {
-   FFTHandler handler("fft/images/desync1.pgm");
-   FFTPlotter plotter;
 
-   handler.read_pgm_file();
-   handler.extract_rows();
-   std::vector<double> x = increment_x_values(handler.width/-2.0, handler.width);
+   FFTHandler handler;
+   handler.initialise("fft/images/desync1.pgm");
+   CImg<double> original = handler.to_cimg();
 
-   for (size_t r = 1; r < handler.width; r++) {
-      fftw_complex* cross_corr = handler.xcorr(r);
-      double peak_position = handler.peak(cross_corr, x);
-      printf("row=%3zu Peak=%.0f\n", r, peak_position);
+   handler.synchronise(); // actually do the work
+   handler.synchronise();
+   //handler.fill_in_blanks(); // find best-guess colours for the missing pixels
 
-      plotter.plot(x, cross_corr, r, r-1);
-      fftw_free(cross_corr);
-   }
-
+   CImg<double> synchronised = handler.to_cimg();
+   synchronised.save("fft/images/desync1_sync.pgm");
+   //(synchronised).display("original vs synchronised", false);
    return 0;
 }

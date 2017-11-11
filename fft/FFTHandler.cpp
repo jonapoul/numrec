@@ -9,42 +9,114 @@
 #include "../global.h"
 #include "FFTHandler.h"
 
-FFTHandler::FFTHandler(const char* fn) : filename(fn) { 
-   estimated_lines = {
-      5, 10, 16, 24, 28, 33, 34, 36, 49, 51, 59, 71, 78, 81, 84, 90, 97, 98, 113, 118, 128, 198, 
-      208, 227, 230, 244, 247, 255, 274, 288, 290, 314, 316, 344, 360, 361, 362, 366, 392, 415, 
-      434, 435, 443, 453, 465, 468, 469, 472, 485, 498, 500, 507
-   };
-}
+FFTHandler::FFTHandler() { /*blank*/ }
 
 FFTHandler::~FFTHandler() {
    delete[] pixels;
-   for (size_t r = 0; r < height; r++) { 
-      fftw_free(rows[r]);
+   delete[] rows; // this line crashes the whole thing when returning from main()???
+}
+
+void FFTHandler::initialise(const char* file) {
+   read_pgm_file(file);
+   extract_rows();
+}
+
+bool FFTHandler::row_should_be_shifted(const size_t r, 
+                                       const std::vector<int>& peaks) {
+   if (r > peaks.size()-2) 
+      return false;
+   if (peaks[r] == -peaks[r+1] && peaks[r] != 0 && peaks[r+1] != 0) 
+      return true;
+   if (abs(peaks[r] - peaks[r-1]) > 100) 
+      return true;
+   return false;
+}
+
+void FFTHandler::synchronise() {
+   static int run_count = 1;
+   printf("\n\nRun #%d...\n", run_count++);
+   std::vector<int> peaks(height);
+   std::vector<size_t> rows_to_be_shifted;
+
+   /* find shift distances for each row */
+   for (size_t r = 1; r < height; r++) {
+      printf("checking peak for row=%zu\n", r);
+      Row cross_corr = xcorr(rows[r], rows[r-1]);
+      peaks[r] = peak(cross_corr);
    }
-   delete[] rows;
+   for (size_t r = 1; r < height; r++) {
+      bool test = row_should_be_shifted(r, peaks) && !is_in_array(r-1, rows_to_be_shifted);
+      if (test) 
+         rows_to_be_shifted.push_back(r);
+      printf("row=%3zu peak at x=%4d shifted=%d\n", r, peaks[r], (int)test);
+   }
+
+   for (auto x : rows_to_be_shifted) printf("%zu ", x);
+   printf("\n");
+
+   /* apply shifts to rows that actually need it */
+   for (size_t r = 1; r < height; r++) {
+      if (is_in_array(r, rows_to_be_shifted)) {
+         const size_t shift_length = abs(peaks[r]);
+         printf("shifting row %3zu by %3d", r, peaks[r]);
+
+         Row right(rows[r]);
+         Row left(rows[r]);
+         right.shift(shift_length, RIGHT);
+         left.shift(shift_length, LEFT);
+
+         Row subrow_prev_right = rows[r-1].subrow(shift_length, rows[r-1].width-shift_length);
+         Row subrow_prev_left  = rows[r-1].subrow(0,            rows[r-1].width-shift_length);
+         Row xcorr_right = xcorr(right, subrow_prev_right);
+         Row xcorr_left  = xcorr(left,  subrow_prev_left);
+
+         // FFTPlotter::plot(right, subrow_prev_right, "right vs prev");
+         // FFTPlotter::plot(left,  subrow_prev_left,  "left vs prev");
+         // FFTPlotter::plot(xcorr_left, xcorr_right, "cross correlations");
+
+         int peak_right  = peak(xcorr_right);
+         int peak_left   = peak(xcorr_left);
+
+         fftw_free(rows[r].pixels);
+         if ( abs(peak_left) < abs(peak_right) ) {
+            rows[r].shifted_distance = shift_length;
+            rows[r].starting_index = 0;
+            rows[r].width = left.width;
+            rows[r].pixels = allocate(left.width);
+            for (size_t i = 0; i < left.width; i++) {
+               rows[r].pixels[i][0] = left.pixels[i][0];
+               rows[r].pixels[i][1] = left.pixels[i][1];
+            }
+            printf(" to the left,  peak moved from %d to %d\n", peaks[r], peak_left);
+         } else {
+            rows[r].shifted_distance = shift_length;
+            rows[r].starting_index = shift_length;
+            rows[r].width = right.width;
+            rows[r].pixels = allocate(right.width);
+            for (size_t i = 0; i < right.width; i++) {
+               rows[r].pixels[i][0] = right.pixels[i][0];
+               rows[r].pixels[i][1] = right.pixels[i][1];
+            }
+            printf(" to the right, peak moved from %d to %d\n", peaks[r], peak_right);
+         }
+      }
+   }
 }
 
-fftw_complex* FFTHandler::allocate(const size_t N) {
-   fftw_complex* output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * N);
-   return output;
-}
-
-void FFTHandler::read_pgm_file() {
-   size_t pos = filename.find_last_of(".");
+void FFTHandler::read_pgm_file(const char* fn) {
+   filename = fn;
+   const size_t pos = filename.find_last_of(".");
    std::string extension = filename.substr(pos+1);
-   if (extension != "pgm") {
-      printf("%s needs to be a .pgm file!\n", filename.c_str());
-      exit(1);
-   }
+   ASSERT( extension == "pgm" );
 
    std::ifstream infile(filename, std::ios::binary);
+   ASSERT( infile.is_open() );
+
    std::string inputLine;
    getline(infile, inputLine);   // file version
-   getline(infile, inputLine);   // two commented lines
-   getline(infile, inputLine);
-   
-   getline(infile, inputLine);   // width, height, range of pixel values
+   getline(infile, inputLine);   // comment
+   getline(infile, inputLine);   // comment
+   getline(infile, inputLine);   // width, height, num possible pixel values
    std::stringstream ss(inputLine);
    ss >> width >> height;
    int max_bits;
@@ -52,114 +124,81 @@ void FFTHandler::read_pgm_file() {
    int bit_depth = log2(max_bits + 1.0);
    printf("height    = %zu\nwidth     = %zu\nbit depth = %d\n", height, width, bit_depth);
 
-   // allocate 2D pixel array
+   // allocate 1D array to hold every pixel in the image
    const size_t pixel_count = height * width;
    pixels = new double[pixel_count];
 
-   // pick out every character in the pgm file
+   // pick out every plaintext ascii character in the pgm file
    size_t i = 0;
    while (getline(infile, inputLine)) {
       for (const unsigned char pix : inputLine) {
-         pixels[i++] = (double)pix; // shift to positive numbers
+         pixels[i++] = (double)pix;
       }
-      if (i <= pixel_count) {
-         // At the end of each inputLine theres a new line character, which arent picked up without this line
+      if (i < pixel_count) {
+         // At the end of each inputLine theres a new line character, which isn't picked up without this bit
          // Took me bloody ages to figure this out
          pixels[i++] = 10; // 10 = ascii code for '\n'
       }
    }
-   infile.close();   
+   infile.close();
 }
 
 void FFTHandler::extract_rows() {
-   rows    = new fftw_complex*[height];
-   size_t i = 0;
+   rows = new Row[height];
    for (size_t r = 0; r < height; r++) {
-      rows[r]    = allocate(width);
-      for (size_t c = 0; c < width; c++) {
-         rows[r][c][0] = pixels[i++];
-         rows[r][c][1] = 0.0;
-      }
+      rows[r].initialise(this, r);
    }
 }
 
-fftw_complex* FFTHandler::fft_row(fftw_complex* row,
-                                  const int fft_direction) {
-   fftw_complex* transformed = allocate(width);
-   fftw_plan p = fftw_plan_dft_1d(width, row, transformed, fft_direction, FFTW_ESTIMATE);
-   fftw_execute(p);
-   fftw_destroy_plan(p);
-   return transformed;
-}
-
-void FFTHandler::conjugate(fftw_complex* row) {
-   for (size_t i = 0; i < width; i++) {
-      row[i][1] *= -1.0;
-   }
-}
-
-fftw_complex* FFTHandler::multiply(fftw_complex* a,
-                                   fftw_complex* b) {
-   fftw_complex* multiplied = allocate(width);
-   for (size_t i = 0; i < width; i++) {
-      const double A = a[i][0];
-      const double B = a[i][1];
-      const double C = b[i][0];
-      const double D = b[i][1];
-      multiplied[i][0] = A*C - B*D;
-      multiplied[i][1] = B*C + A*D;
-   }
-   return multiplied;
-}
-
-void FFTHandler::centre_on_0(fftw_complex* a) {
-   fftw_complex* temp = allocate(width);
-   for (size_t i = 0; i < width/2; i++) {
-      temp[i][0] = a[i + width/2][0];
-      temp[i][1] = a[i + width/2][1];
-   }
-   for (size_t i = width/2; i < width; i++) {
-      temp[i][0] = a[i - width/2][0];
-      temp[i][1] = a[i - width/2][1];
-   }
-   for (size_t i = 0; i < width; i++) {
-      a[i][0] = temp[i][0];
-      a[i][1] = temp[i][1];
-   }
-   fftw_free(temp);
-}
-
-double FFTHandler::peak(fftw_complex* a, 
-                        const std::vector<double>& x) {
+int FFTHandler::peak(const Row& r) const {
    double max_height = -1e200;
-   double peak_position;
-   for (size_t i = 0; i < width; i++) {
-      if (a[i][0] > max_height) {
-         max_height = a[i][0];
+   int peak_position;
+   std::vector<double> x(r.width);
+   for (size_t i = 0; i < x.size(); i++) {
+      x[i] = -0.5*r.width + (double)i;
+   }
+   for (size_t i = 0; i < r.width; i++) {
+      if (magnitude(r.pixels[i]) > max_height) {
+         max_height = r.pixels[i][0];
          peak_position = x[i];
       }
    }
    return peak_position;
 }
 
-fftw_complex* FFTHandler::xcorr(const size_t row_index) {
-   EXIT_IF_FALSE(row_index > 0);
-   auto ft_curr = fft_row(rows[row_index],   FFTW_FORWARD);
-   auto ft_prev = fft_row(rows[row_index-1], FFTW_FORWARD);
-   conjugate(ft_prev);
-   fftw_complex* multiplied = multiply(ft_curr, ft_prev);
+Row FFTHandler::xcorr(const Row& row1, 
+                      const Row& row2) {
+   ASSERT( row1.width == row2.width );
 
-   fftw_complex* inversed = fft_row(multiplied, FFTW_BACKWARD);
-   for (size_t i = 0; i < width; i++) {
-      inversed[i][0] /= (double)width;
-      inversed[i][1] /= (double)width;
-   }
+   Row fft1       = row1.fft();
+   Row fft2       = row2.fft();
+   Row multiplied = fft1 * fft2.conjugate();
+   Row inversed   = multiplied.inverse_fft();
 
-   centre_on_0(inversed); // shifting the phase of the periodic function, so the peak is somewhere near the middle
-
-   fftw_free(multiplied);
-   fftw_free(ft_curr);
-   fftw_free(ft_prev);
-
+   /* shift the phase of the periodic function, so the peak is (ideally) near the middle of the curve */
+   inversed.recentre();
    return inversed;
+   return fft1;
+}
+
+CImg<double> FFTHandler::to_cimg() {
+   const double BLANK_PIXEL = 0.0;
+   CImg<double> image(width, height, 1, 1);
+
+   for (size_t r = 0; r < height; r++) {
+      for (size_t c = 0; c < rows[r].starting_index; c++) {
+         image(c, r) = BLANK_PIXEL;
+      }
+      for (size_t c = rows[r].starting_index; c < rows[r].width; c++) {
+         image(c, r) = magnitude(rows[r].pixels[c]);
+      }
+      for (size_t c = rows[r].width; c < this->width; c++) {
+         image(c, r) = BLANK_PIXEL;
+      }
+   }
+   return image;
+}
+
+inline double FFTHandler::magnitude(fftw_complex a) const {
+   return sqrt(a[0]*a[0] + a[1]*a[1]);
 }

@@ -12,7 +12,7 @@ Minimiser::Minimiser(const DataPoints& data)
 
 void Minimiser::set_param_limits(const Params& params_min, 
                                  const Params& params_max) {
-   EXIT_IF_FALSE( params_min.size() == params_max.size() );
+   ASSERT( params_min.size() == params_max.size() );
    m_params_max = params_max;
    m_params_min = params_min;
 }
@@ -42,15 +42,15 @@ void Minimiser::set_model_function_implementation(ModelFunction f,
    if (function_name == "logarithmic") m_model_description = "y = a + b*log(c*x + d)";
    if (function_name == "gaussian")    m_model_description = "y = a + b*exp( [(x-c)/d]^2 / 2 )";
    if (function_name == "step")        m_model_description = "y = { a if x < c } or { b for x > c }";
-   EXIT_IF_FALSE(m_model_description[0] == 'y'); // if none of these conditions were met
+   ASSERT(m_model_description[0] == 'y'); // if none of these conditions were met
 }
 
 void Minimiser::minimise() {
    // ensure that various conditions have been met before continuing
-   EXIT_IF_FALSE( m_params_min.size()  == m_params_max.size() ); // grid max/minima have the same dimensions
-   EXIT_IF_FALSE( m_params_min.size()  != 0);                    // we have at least one parameter
-   EXIT_IF_FALSE( function_to_minimise != nullptr);              // main function (chisq) has been assigned
-   EXIT_IF_FALSE( model_function       != nullptr);              // model function (linear) has been assigned
+   ASSERT( m_params_min.size()  == m_params_max.size() ); // grid max/minima have the same dimensions
+   ASSERT( m_params_min.size()  != 0);                    // we have at least one parameter
+   ASSERT( function_to_minimise != nullptr);              // main function (chisq) has been assigned
+   ASSERT( model_function       != nullptr);              // model function (linear) has been assigned
 
    const size_t N_params = m_params_min.size();
    printf("Function       = %s\n", m_model_func_name.c_str());

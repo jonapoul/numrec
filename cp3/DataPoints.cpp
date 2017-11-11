@@ -7,7 +7,7 @@ DataPoints::DataPoints() {
 
 DataPoints::DataPoints(const std::string& filename, const std::string& dataset_name) {
    std::ifstream file(filename);
-   EXIT_IF_FALSE( file.good() );
+   ASSERT( file.good() );
    std::string temp_str;
    while (std::getline(file, temp_str)) {
       std::stringstream ss(temp_str);

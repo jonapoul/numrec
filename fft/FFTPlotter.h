@@ -3,10 +3,14 @@
 
 class FFTPlotter {
 public:
-   void plot(const std::vector<double>& x, 
-             fftw_complex* y,
-             const size_t row,
-             const size_t row_prev);
+   static void plot(const std::vector<double>& x, 
+                    fftw_complex* y,
+                    const size_t row,
+                    const size_t row_prev);
+   static void plot(const Row& r1,
+                    const Row& r2,
+                    const std::string& titlestr="");
+   static void plot(const Row& r);
 };
 
 #endif

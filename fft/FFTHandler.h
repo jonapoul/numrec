@@ -4,31 +4,31 @@
 #include <string>
 #include "../global.h"
 
+class Row;
+class FFTPlotter;
+
 class FFTHandler {
 public:
    std::string filename; // image file in question
-   size_t height; // number of rows
-   size_t width; // number of columns
-   double* pixels; // entire image
-   fftw_complex** rows; // array of each row
-   std::vector<size_t> estimated_lines; // lines that should be shifted
+   size_t      height;   // number of rows
+   size_t      width;    // number of columns
+   double*     pixels;   // entire image in one array
+   Row*        rows;     // array of pixel rows
 
 public:
-   FFTHandler(const char* fn);
+   FFTHandler();
    ~FFTHandler();
-
-   fftw_complex* allocate(const size_t N);
-   void read_pgm_file();
+   
+   void initialise(const char* fn);
+   void synchronise();
+   void read_pgm_file(const char* fn);
    void extract_rows();
-   fftw_complex* fft_row(fftw_complex* row,
-                         const int fft_direction);
-   void conjugate(fftw_complex* row);
-   fftw_complex* multiply(fftw_complex* a,
-                          fftw_complex* b);
-   void centre_on_0(fftw_complex* a);
-   double peak(fftw_complex* a,
-               const std::vector<double>& x);
-   fftw_complex* xcorr(const size_t row_index);
+
+   bool row_should_be_shifted(const size_t r, const std::vector<int>& peaks);
+   int peak(const Row& r) const;
+   inline double magnitude(fftw_complex a) const;
+   CImg<double> to_cimg();
+   Row xcorr(const Row& row1, const Row& row2);
 };
 
 #endif

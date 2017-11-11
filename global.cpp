@@ -8,10 +8,10 @@ bool is_in_range(double min, double x, double max, double epsilon) {
    return (min-epsilon < x && x < max+epsilon); 
 }
 
-void exit_if_false(bool condition, const char* bool_string, const char* file, const char* function, int line) {
+void my_assert(bool condition, const char* bool_string, const char* file, const char* function, int line) {
    if (!condition) {
-      printf("Error! Condition \"%s\" evaluated as false\n", bool_string);
-      printf("file = \"%s\", function = \"%s()\", line = %d\n", file, function, line);
+      printf("Error! Condition [ %s ] evaluated as false\n", bool_string);
+      printf("file = [ %s ], function = [ %s() ], line = [ %d ]\n", file, function, line);
       exit(1);
    }
 }
@@ -26,14 +26,6 @@ XArray generate_smooth_x_values(const XArray& xinput, const size_t N_points) {
    return output;
 }
 
-std::vector<double> increment_x_values(const double xmin, size_t N, double dx) {
-   std::vector<double> x_values(N);
-   for (size_t i = 0; i < N; i++) {
-      x_values[i] = xmin + i*dx;
-   }
-   return x_values;
-}
-
 void fftw_complex_to_vectors(const fftw_complex* c, const size_t N, std::vector<double>* re, std::vector<double>* im) {
    for (size_t i = 0; i < N; i++) {
       re->push_back( c[i][0] );
@@ -45,3 +37,8 @@ bool is_in_array(const size_t x, const std::vector<size_t>& arr) {
    for (const auto a : arr) if (a == x) return true;
    return false;
 };
+
+fftw_complex* allocate(const size_t size) {
+   fftw_complex* output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * size);
+   return output;
+}
