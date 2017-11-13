@@ -35,10 +35,10 @@ void FFTPlotter::plot(const Row& r1,
    fftw_complex_to_vectors(r2.pixels, r2.width, &re2, &im2);
    std::vector<double> x1(re1.size()), x2(re2.size());
    for (size_t i = 0; i < r1.width; i++) {
-      x1[i] = r1.starting_index + i - 0.5*r1.width;
+      x1[i] = i - 0.5*r1.width + (r1.width%2==1?0.5:0);
    }
    for (size_t i = 0; i < r2.width; i++) {
-      x2[i] = r2.starting_index + i - 0.5*r2.width;
+      x2[i] = i - 0.5*r2.width + (r2.width%2==1?0.5:0);
    }
 
    plt::clf();
@@ -65,7 +65,7 @@ void FFTPlotter::plot(const Row& r) {
    plt::clf();
    std::vector<double> x(r.width);
    for (size_t i = 0; i < r.width; i++) {
-      x[i] = -0.5*r.width + i + r.starting_index;
+      x[i] = -0.5*r.width + i + (r.width%2==1?0.5:0);
    }
    plt::plot(x, re, "r-");
    plt::tight_layout();
