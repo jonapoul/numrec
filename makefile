@@ -17,7 +17,6 @@ MINUIT      = -I/usr/include/minuit -fopenmp
 FFT_CPP := $(wildcard fft/*.cpp)
 FFT_OBJ := $(addprefix obj/,$(notdir $(FFT_CPP:.cpp=.o)))
 FFT      = -lfftw3
-CIMG     = -O2 -L/usr/X11R6/lib -lm -lpthread -lX11 -lfftw3_threads
 
 
 default: checkpoint1 checkpoint2 checkpoint3 fft
@@ -32,7 +31,7 @@ checkpoint3: $(CP3_OBJ) obj/global.o $(MINUIT_OBJ)
 	$(CC) $(LDFLAGS) -o bin/$@ $^ $(PLOT) $(MINUIT)
 
 fft: $(FFT_OBJ) obj/global.o
-	$(CC) $(LDFLAGS) -o bin/$@ $^ $(PLOT) $(FFT) $(CIMG)
+	$(CC) $(LDFLAGS) -o bin/$@ $^ $(PLOT) $(FFT)
 
 obj/%.o: cp2/%.cpp obj/global.o
 	$(CC) $(CCFLAGS) -o $@ $< $(PLOT)

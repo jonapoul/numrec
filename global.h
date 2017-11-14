@@ -9,7 +9,8 @@
 #include "fft/Image.h"
 #include "fft/Row.h"
 
-#define PRINT_DEBUG true
+/* for toggling debug output, to follow the flow of the pogram */
+#define PRINT_DEBUG false
 
 /*
    FFT

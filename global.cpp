@@ -33,6 +33,7 @@ void fftw_complex_to_vectors(const fftw_complex* c,
    }
 }
 
+/* returns true if the number x is somewhere in the array, false otherwise */
 bool is_in_array(const size_t x, 
                  const std::vector<size_t>& arr) {
    for (const auto a : arr) {
@@ -43,27 +44,38 @@ bool is_in_array(const size_t x,
    return false;
 };
 
+/* used to track down any caught errors. the macro ASSERT() captures a boolean
+   statement and passes that here, along with the stringified version of that 
+   statement and its file, function and line number */
 void my_assert(const bool condition, 
                const char* bool_string, 
                const char* file, 
                const char* function, 
                const int line) {
    if (!condition) {
-      printf("ERROR:\n\tCondition [ %s ] evaluated as false\n", bool_string);
-      printf("\tfile = [ %s ], function = [ %s() ], line = [ %d ]\n", file, function, line);
+      printf("ERROR:\n\tCondition [ %s ] evaluated as false\n", 
+             bool_string);
+      printf("\tfile = [ %s ], function = [ %s() ], line = [ %d ]\n", 
+             file, function, line);
       exit(1);
    }
 }
 
+/* captures two integer arguments from command line
+      1) image number to use, between 1 and 4 (default = 1)
+      2) number of synchronisation runs to complete, at least 1 (default = 1)
+*/
 void get_arguments(int argc, 
                    char** argv, 
         /*output*/ std::string* filename, 
         /*output*/ size_t* run_limit) {
-   /* expecting a number from 1-4 as first argument */
-   ASSERT( argc > 1 );
-   ASSERT( isdigit(argv[1][0]) );
-   const int image_number = atoi(argv[1]);
-   ASSERT( image_number >= 1 && image_number <= 4 );
+
+   int image_number = 1; /* default to desync1.pgm */
+   if (argc > 1) {
+      ASSERT( isdigit(argv[1][0]) );
+      image_number = atoi(argv[1]);
+      ASSERT( image_number >= 1 && image_number <= 4 );
+   }
 
    /* build the filepath and test if it's valid */
    char buf[100];
@@ -71,8 +83,9 @@ void get_arguments(int argc,
    *filename = std::string(buf);
    std::ifstream image_file(buf);
    ASSERT( image_file.is_open() );
+   image_file.close();
 
-   *run_limit = 1; // default to 1 run
+   *run_limit = 1; /* default to 1 run */
    if (argc > 2) {
       ASSERT( isdigit(argv[2][0]) );
       *run_limit = atoi(argv[2]);
