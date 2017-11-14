@@ -6,27 +6,6 @@ namespace plt = matplotlibcpp;
 #include "../global.h"
 #include "FFTPlotter.h"
 
-void FFTPlotter::plot(const std::vector<double>& x, 
-                      fftw_complex* y,
-                      const size_t row,
-                      const size_t row_prev) {
-
-   std::vector<double> re, im;
-   fftw_complex_to_vectors(y, x.size(), &re, &im);
-   
-   plt::clf();
-   plt::named_plot("real", x, re, "r-");
-   // plt::named_plot("imaginary", x, im, "g-");
-
-   char titlebuf[100];
-   snprintf(titlebuf, 100, "%zu to %zu", row_prev, row);
-   plt::tight_layout();
-   plt::title(titlebuf);
-   plt::grid(true);
-   // plt::legend();
-   plt::show();
-}
-
 void FFTPlotter::plot(const Row& r1,
                       const Row& r2,
                       const std::string& titlestr) {
@@ -35,22 +14,23 @@ void FFTPlotter::plot(const Row& r1,
    fftw_complex_to_vectors(r2.pixels, r2.width, &re2, &im2);
    std::vector<double> x1(re1.size()), x2(re2.size());
    for (size_t i = 0; i < r1.width; i++) {
-      x1[i] = i - 0.5*r1.width + (r1.width%2==1?0.5:0);
+      x1[i] = i - 0.5*r1.width + (r1.width%2==1?0.5:0) + r1.starting_index;
    }
    for (size_t i = 0; i < r2.width; i++) {
-      x2[i] = i - 0.5*r2.width + (r2.width%2==1?0.5:0);
+      x2[i] = i - 0.5*r2.width + (r2.width%2==1?0.5:0) + r2.starting_index;
    }
 
-   plt::clf();
-   plt::subplot(2, 1, 1);
-   plt::named_plot("left shift", x1, re1, "r-");
-   plt::tight_layout();
-   plt::grid(true);
-   plt::legend();
-   plt::title(titlestr);
+   // plt::clf();
+   // plt::subplot(2, 1, 1);
+   // plt::named_plot("left shift", x1, re1, "r-");
+   // plt::tight_layout();
+   // plt::grid(true);
+   // plt::legend();
+   // plt::title(titlestr);
 
-   plt::subplot(2, 1, 2);
-   plt::named_plot("right shift", x2, re2, "g-");
+   //plt::subplot(2, 1, 2);
+   plt::named_plot("r1", x1, re1, "r-");
+   plt::named_plot("r2", x2, re2, "g-");
    plt::tight_layout();
    plt::grid(true);
    plt::legend();

@@ -2,21 +2,19 @@
 #include "Row.h"
 
 Row::Row() 
-      : parent(nullptr), 
-        pixels(nullptr), 
-        width(0), 
-        shifted_distance(0), 
-        row_index(0), 
-        starting_index(0), 
-        has_been_shifted(false) { }
+         : parent(nullptr), 
+           pixels(nullptr), 
+           width(0), 
+           row_index(0), 
+           starting_index(0), 
+           has_been_shifted(false) { }
 
 Row::Row(const Row& r) 
-      : parent(r.parent), 
-        width(r.width), 
-        shifted_distance(r.shifted_distance), 
-        row_index(r.row_index), 
-        starting_index(r.starting_index),
-        has_been_shifted(r.has_been_shifted) {
+         : parent(r.parent), 
+           width(r.width), 
+           row_index(r.row_index), 
+           starting_index(r.starting_index),
+           has_been_shifted(r.has_been_shifted) {
    this->pixels = allocate(width);
    for (size_t i = 0; i < width; i++) {
       this->pixels[i][0] = r.pixels[i][0];
@@ -33,7 +31,6 @@ void Row::initialise(Image* im,
    /* this is separate from the constructors due to pointer-related shenanigans */
    parent           = im;
    width            = parent->width;
-   shifted_distance = 0;
    row_index        = index;
    starting_index   = 0;
 
@@ -45,38 +42,32 @@ void Row::initialise(Image* im,
    }
 }
 
-/* values of "direction" defined in global.h */
-void Row::shift(const size_t distance, 
-                const int direction) {
-   ASSERT( direction == RIGHT || direction == LEFT );
-   if (distance == 0) 
-      return;
+void Row::shift(const int distance) {
+   /* if we don't need to shift, just back out now */
+   if (distance == 0) return;
 
-   this->width = parent->width - distance;
-   this->shifted_distance = distance;
-   this->starting_index = (direction == LEFT) ? 0 : distance;
+   /* a peak position of less than 0 indicates requiring a right shift, and vice versa */
+   enum { LEFT, RIGHT };
+   const int direction = (distance < 0) ? RIGHT : LEFT;
+
+   this->width            = parent->width - abs(distance);
+   this->starting_index   = (direction == LEFT) ? 0 : abs(distance);
    this->has_been_shifted = true;
 
-   // copy over relevant pixels to temporary array
+   /* copy over relevant pixels to temporary array */   
    fftw_complex* temp = allocate(width);
-   if (direction == LEFT) {
-      for (size_t i = 0; i < width; i++) {
-         temp[i][0] = pixels[i + distance][0];
-         temp[i][1] = pixels[i + distance][1];
-      }
-   } else {
-      for (size_t i = 0; i < width; i++) {
-         temp[i][0] = pixels[i][0];
-         temp[i][1] = pixels[i][1];
-      }
+   const int offset = (direction == LEFT) ? distance : 0;
+   for (size_t i = 0; i < width; i++) {
+      temp[i][0] = this->pixels[i + offset][0];
+      temp[i][1] = this->pixels[i + offset][1];
    }
 
-   // resize pixels array and bring them back over
+   /* resize pixels array and copy them back over */
    deallocate(pixels);
    pixels = allocate(width);
    for (size_t i = 0; i < width; i++) {
-      pixels[i][0] = temp[i][0];
-      pixels[i][1] = temp[i][1];
+      this->pixels[i][0] = temp[i][0];
+      this->pixels[i][1] = temp[i][1];
    }
    deallocate(temp);
 }
@@ -127,10 +118,11 @@ Row Row::conjugate() const {
    return result;
 }
 
-void Row::print_debug() const {
+/* for debugging, just dump all info about a row */
+void Row::print() const {
+   if (!PRINT_DEBUG) return;
    printf("Parent           = %s\n", (parent ? parent->filename.c_str() : "nullptr"));
    printf("Width            = %zu\n", width);
-   printf("Shifted Distance = %zu\n", shifted_distance);
    printf("Row Index        = %zu\n", row_index);
    printf("Starting Index   = %zu\n", starting_index);
 
@@ -145,23 +137,23 @@ void Row::print_debug() const {
 }
 
 /* creates a shortened row object, starting from index 'first' of the pixels array and
-   stretching for 'length' pixels. Basically for allowing cross-correlations betweened shifted 
-   and non-shifted rows, only taking into account the pixel indices covered by both rows */
+   stretching for 'length' pixels. Basically for allowing cross-correlations between two 
+   rows of different widths, only taking into account the pixel indices covered by both rows */
 Row Row::subrow(const size_t first, 
                 const size_t length) const {
-   if (length == 0) 
-      return *this;
-   ASSERT( first < this->width );
+   if (length == 0) return *this;
+   ASSERT( first <  this->width );
+   ASSERT( first >= this->starting_index );
+
    Row sub;
    sub.parent           = this->parent;
    sub.width            = length;
-   sub.shifted_distance = parent->width - length;
    sub.row_index        = this->row_index;
    sub.starting_index   = first;
    sub.pixels           = allocate(length);
    for (size_t i = 0; i < length; i++) {
-      sub.pixels[i][0] = this->pixels[first + i][0];
-      sub.pixels[i][1] = this->pixels[first + i][1];
+      sub.pixels[i][0] = this->pixels[first - this->starting_index + i][0];
+      sub.pixels[i][1] = this->pixels[first - this->starting_index + i][1];
    }
    return sub;
 }
@@ -170,6 +162,7 @@ double Row::magnitude(const size_t index) const {
    return sqrt(pixels[index][0]*pixels[index][0] + pixels[index][1]*pixels[index][1]);
 }
 
+/* just so we don't have loads of ugly pointer casts littered all over the place */
 fftw_complex* Row::allocate(const size_t size) {
    fftw_complex* output = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * size);
    return output;
@@ -183,17 +176,22 @@ void Row::deallocate(fftw_complex* a) {
    fftw_free(a);
 }
 
+/* counts how many pixels are defined by "this" and row r. This will be less than this->width 
+   if either of the rows has been previously shifted */
 size_t Row::overlapping_pixels_with(const Row& r) const {
    size_t count = 0;
    for (size_t i = 0; i < parent->width; i++) {
-      if (i > this->starting_index && i < this->starting_index + this->width &&
-          i > r.starting_index     && i < r.starting_index + r.width) {
+      if (   i >= this->starting_index 
+          && i <  this->starting_index + this->width 
+          && i >= r.starting_index     
+          && i <  r.starting_index + r.width) {
          count++;
       }
    }
    return count;
 }
 
+/* multiplies every element of two rows, basically a dot product with complex numbers */
 Row Row::operator*(const Row& r) const {
    Row result(*this);
    for (size_t i = 0; i < width; i++) {
@@ -208,10 +206,10 @@ Row Row::operator*(const Row& r) const {
    return result;
 }
 
+/* assignment operator */
 Row& Row::operator=(const Row& r) {
    this->parent           = r.parent;
    this->width            = r.width;
-   this->shifted_distance = r.shifted_distance;
    this->row_index        = r.row_index;
    this->starting_index   = r.starting_index;
    this->has_been_shifted = r.has_been_shifted;
@@ -220,5 +218,6 @@ Row& Row::operator=(const Row& r) {
       this->pixels[i][0] = r.pixels[i][0];
       this->pixels[i][1] = r.pixels[i][1];
    }
+   printf("EQUALS\n");
    return *this;
 }

@@ -9,7 +9,6 @@ public:
    Image*        parent;
    fftw_complex* pixels;
    size_t        width;
-   size_t        shifted_distance;
    size_t        row_index;
    size_t        starting_index;
    bool          has_been_shifted;
@@ -19,10 +18,11 @@ public:
    Row(const Row& r);
    ~Row();
 
-   void print_debug() const;
+   void print() const;
    void recentre();
    void initialise(Image* im, const size_t index);
-   void shift(const size_t distance, const int direction);
+   void shift(const int distance, const int direction);
+   void shift(const int distance);
    Row conjugate() const;
    Row fft() const;
    Row inverse_fft() const;

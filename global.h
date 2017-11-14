@@ -5,24 +5,22 @@
 #include <vector>
 #include <string>
 #include <fftw3.h>
-#include <CImg/CImg.h>
-using namespace cimg_library;
 
 #include "fft/Image.h"
-#include "fft/FFTPlotter.h"
 #include "fft/Row.h"
+
+#define PRINT_DEBUG true
 
 /*
    FFT
 */
 void fftw_complex_to_vectors(const fftw_complex* c, const size_t N, std::vector<double>* re, std::vector<double>* im);
 bool is_in_array(const size_t x, const std::vector<size_t>& arr);
-#define RIGHT 1
-#define LEFT -1
 #define PRINT(var) std::cout<<#var<<" = "<<var<<std::endl;
 #define ASSERT(statement) my_assert(statement,#statement,__FILE__,__FUNCTION__,__LINE__)
 void my_assert(const bool condition, const char* str, const char* file, const char* func, const int line);
 #define ROUND(x) (x>0)?(int)(x+0.5):(int)(x-0.5)
+void get_arguments(int argc, char** argv, std::string* filename, size_t* run_limit);
 
 /* 
    CP3 
