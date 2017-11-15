@@ -9,9 +9,6 @@
 #include "fft/Image.h"
 #include "fft/Row.h"
 
-/* for toggling debug output, to follow the flow of the pogram */
-#define PRINT_DEBUG false
-
 /*
    FFT
 */
@@ -26,8 +23,8 @@ void get_arguments(int argc, char** argv, std::string* filename, size_t* run_lim
 /* 
    CP3 
 */
-#define MIN(x,y)                       (x<y)?x:y
-#define MAX(x,y)                       (x>y)?x:y
+#define MIN(x,y) (x<y)?x:y
+#define MAX(x,y) (x>y)?x:y
 // macros to conveniently grab strings from things
 #define set_function_to_minimise(func) set_function_to_minimise_implementation(func,#func)
 #define set_model_function(func)       set_model_function_implementation(func,#func)

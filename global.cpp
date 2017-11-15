@@ -53,17 +53,17 @@ void my_assert(const bool condition,
                const char* function, 
                const int line) {
    if (!condition) {
-      printf("ERROR:\n\tCondition [ %s ] evaluated as false\n", 
-             bool_string);
-      printf("\tfile = [ %s ], function = [ %s() ], line = [ %d ]\n", 
-             file, function, line);
+      printf("\nERROR: Condition [ %s ] evaluated as false\n", bool_string);
+      printf("\tfile     = [ %s ]\n",   file);
+      printf("\tfunction = [ %s() ]\n", function);
+      printf("\tline     = [ %d ]\n\n",   line);
       exit(1);
    }
 }
 
 /* captures two integer arguments from command line
       1) image number to use, between 1 and 4 (default = 1)
-      2) number of synchronisation runs to complete, at least 1 (default = 1)
+      2) number of synchronisation runs to complete, at least 1 (default = 20)
 */
 void get_arguments(int argc, 
                    char** argv, 
@@ -85,7 +85,7 @@ void get_arguments(int argc,
    ASSERT( image_file.is_open() );
    image_file.close();
 
-   *run_limit = 1; /* default to 1 run */
+   *run_limit = 20; /* default to 20 runs, enough to cover all iterations */
    if (argc > 2) {
       ASSERT( isdigit(argv[2][0]) );
       *run_limit = atoi(argv[2]);

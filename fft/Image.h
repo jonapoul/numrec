@@ -14,10 +14,11 @@ public:
    double*     pixels;   // 1D array of all pixels
    Row*        rows;     // array of pixel rows
 
-   int BLANK_PIXEL;
+   int         blank_pixel; // value given to empty pixels on shifted rows
+   bool        print_debug; // decides whether or not to print loads of info
 
 public:
-   Image(const std::string& file);
+   Image(const std::string& file, const bool is_debug);
    ~Image();
    
    bool synchronise();

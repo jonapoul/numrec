@@ -8,8 +8,11 @@
 #include "../global.h"
 #include "Image.h"
 
-Image::Image(const std::string& file)
-         : filename(file), BLANK_PIXEL(1) {
+Image::Image(const std::string& file,
+             const bool is_debug)
+         : filename(file), 
+           blank_pixel(1),
+           print_debug(is_debug) {
    /* check that image filename is valid */ 
    const size_t pos = filename.find_last_of(".");
    std::string extension = filename.substr(pos+1);
@@ -62,74 +65,75 @@ Image::~Image() {
    the flow of logic. I realise that some of these are probably redundant but 
    I didn't want to risk breaking it
    
-      r = row index that we're looking at
-      peaks = array of x-coordinates of each row's cross-correlation
+      r     = row index that we're looking at
+      peaks = array of precalculated x-coordinates of each row's 
+              cross-correlation peak
     */
 bool Image::row_should_be_shifted(const size_t r, 
                                   const std::vector<int>& peaks) {
    /* 0 shift => not shifting (obviously) */
    if (peaks[r] == 0) {
-      if (PRINT_DEBUG) printf(" 0 ");
+      if (print_debug) printf(" 0 ");
       return false;
    }
    /* shifting too far, probably a mistake somewhere */
    if (abs(peaks[r]) > rows[r].width/10.0) {
-      if (PRINT_DEBUG) printf(" 1 ");
+      if (print_debug) printf(" 1 ");
       return false;
    }
    /* ignore any rows that have already had shifts applied */
    if (rows[r].has_been_shifted) {
-      if (PRINT_DEBUG) printf(" 2 ");
+      if (print_debug) printf(" 2 ");
       return false;
    }
    /* made to detect blocks of 2 shifted rows immediately before this row */
-   if (                  r > 2 && 
-       abs(peaks[r-2])     > 5 && 
-       abs(peaks[r-1])     > 5 && 
-       abs(peaks[r])       > 5 && 
-       peaks[r]*peaks[r-1] < 0 && 
-       peaks[r]*peaks[r-2] < 0 ) {
-      if (PRINT_DEBUG) printf(" 3 ");
+   if (   r                   > 2 
+       && abs(peaks[r-2])     > 5 
+       && abs(peaks[r-1])     > 5 
+       && abs(peaks[r])       > 5 
+       && peaks[r]*peaks[r-1] < 0 
+       && peaks[r]*peaks[r-2] < 0 ) {
+      if (print_debug) printf(" 3 ");
       return false;
    }
    /* to detect a single shifted line on its own */
-   if (r < peaks.size()-1 && 
-       peaks[r] == -peaks[r+1] && 
-       peaks[r] != 0) {
-      if (PRINT_DEBUG) printf(" 4 ");
+   if (   r        <   peaks.size()-1
+       && peaks[r] == -peaks[r+1]
+       && peaks[r] !=  0) {
+      if (print_debug) printf(" 4 ");
       return true;
    }
    /* if the previous row is nonzero and too close to the current.
       Mostly pops up in the diagonal trees at the bottom of desync1  */
-   if (peaks[r-1] != 0 && 
-       abs(peaks[r]-peaks[r-1]) < 2) {
-      if (PRINT_DEBUG) printf(" 5 ");
+   if (   peaks[r-1] != 0 
+       && abs(peaks[r]-peaks[r-1]) < 2) {
+      if (print_debug) printf(" 5 ");
       return false;
    }
    /* detect annoying blocks of two, e.g. lines 147-9 in desync3.pgm */
-   if (r < peaks.size()-1) {
+   if (r > 1) {
       const int sum = peaks[r] + peaks[r-1] + peaks[r-2];
       if (abs(sum) <= 3) {
-         if (PRINT_DEBUG) printf(" 6 ");
+         if (print_debug) printf(" 6 ");
          return false;
       }
    }
    /* detect blocks of three shifted lines */
-   if (r < peaks.size()-2) {
+   if (r > 2) {
       const int sum = peaks[r] + peaks[r-1] + peaks[r-2] + peaks[r-3];
       if (abs(sum) <= 4) {
-         if (PRINT_DEBUG) printf(" 7 ");
+         if (print_debug) printf(" 7 ");
          return false;
       }
    }
    /* any other noticable difference between two peak coordinates */
    if (abs(peaks[r] - peaks[r-1]) > 5) {
-      if (PRINT_DEBUG) printf(" 8 ");
+      if (print_debug) printf(" 8 ");
       return true;
    }
 
    /* if all else fails, shift it just in case */
-   if (PRINT_DEBUG) printf(" X ");
+   if (print_debug) printf(" X ");
    return true;
 }
 
@@ -140,7 +144,7 @@ bool Image::synchronise() {
 
    /* find shift distances for each row */
    for (size_t r = 1; r < height; r++) {
-      Row xcorr = cross_correlate(rows[r], rows[r-1]);
+      const Row xcorr = cross_correlate(rows[r], rows[r-1]);
       peaks[r] = peak(xcorr);
    }
    /* determine which rows need to be shifted */
@@ -148,20 +152,20 @@ bool Image::synchronise() {
       bool shift_it =    row_should_be_shifted(r, peaks) 
                       && !is_in_array(r-1, rows_to_be_shifted);
       if (shift_it) rows_to_be_shifted.push_back(r);
-      if (PRINT_DEBUG) {
+      if (print_debug) {
          printf("row=%3zu peak at x=%4d prev=%s chosen=%s\n", 
                 r, peaks[r], (rows[r].has_been_shifted?"yes":"no "), 
                 (shift_it?"yes":"no "));
       }
    }
    /* print out some info about what's been shifted */
-   if (PRINT_DEBUG) {
+   if (print_debug) {
       printf("Rows shifted = ");
-      for (auto x : rows_to_be_shifted) 
-         printf("%zu ", x);
+      for (auto r : rows_to_be_shifted) 
+         printf("%zu ", r);
       printf("\n");
    } else {
-      printf("%3zu rows shifted\n", rows_to_be_shifted.size());
+      printf("%4zu/%zu rows shifted\n", rows_to_be_shifted.size(), height);
    }
 
    /* If there's nothing to do, we may as well back out */
@@ -176,12 +180,12 @@ bool Image::synchronise() {
                don't throw it too far */
             peaks[r] = peak(cross_correlate(rows[r], rows[r-1]));
          }
-         if (PRINT_DEBUG) {
+         if (print_debug) {
             printf("shifting row %3zu ", r);
          }
          rows[r].shift(peaks[r]); /* actually apply the shift */
 
-         if (PRINT_DEBUG) {
+         if (print_debug) {
             printf(" by %3d, new peak = %3d\n", 
                    peaks[r], peak(cross_correlate(rows[r], rows[r-1])));
          }
@@ -204,7 +208,7 @@ int Image::peak(const Row& r) const {
       /* magnitude(i) is the magnitude of the complex number at the ith column */
       if (r.magnitude(i) > max_height) {
          max_height = r.pixels[i][0];
-         peak_position = ROUND(x[i]);
+         peak_position = ROUND( x[i] );
       }
    }
    return peak_position;
@@ -213,7 +217,7 @@ int Image::peak(const Row& r) const {
 Row Image::cross_correlate(const Row& row1, 
                            const Row& row2) {
    /* get the largest stretch of pixels thats covered by both row1 and row2 */
-   const size_t first_index  = MAX(row1.starting_index, row2.starting_index);
+   const size_t first_index  = MAX( row1.starting_index, row2.starting_index );
    const size_t subrow_width = row1.overlapping_pixels_with(row2);
    const Row r1 = row1.subrow(first_index, subrow_width);
    const Row r2 = row2.subrow(first_index, subrow_width);
@@ -252,11 +256,10 @@ void Image::save() const {
       const size_t width_r = rows[r].width;
       size_t j = 0;
       for (size_t c = 0; c < width; c++) {
-         /* BLANK_PIXEL is set in the Image() constructor */
          double temp;
-         if      (c < start_r)         temp = BLANK_PIXEL;
+         if      (c < start_r)         temp = blank_pixel;
          else if (c < start_r+width_r) temp = rows[r].magnitude(j++);
-         else                          temp = BLANK_PIXEL;
+         else                          temp = blank_pixel;
          file << (unsigned char)temp;
       }
    }
