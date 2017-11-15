@@ -173,24 +173,17 @@ bool Image::synchronise() {
       return false;
 
    /* apply shifts to rows that actually need it */
-   for (size_t r = 1; r < height; r++) {     
-      if (is_in_array(r, rows_to_be_shifted)) {
-         if (is_in_array(r-1, rows_to_be_shifted)) {
-            /* update the shift distance based on any previous shifts, so we 
-               don't throw it too far */
-            peaks[r] = peak(cross_correlate(rows[r], rows[r-1]));
-         }
-         if (print_debug) {
-            printf("shifting row %3zu ", r);
-         }
-         rows[r].shift(peaks[r]); /* actually apply the shift */
+   for (auto r : rows_to_be_shifted) {
+      if (print_debug) {
+         printf("shifting row %3zu by %3d", r, peaks[r]);
+      }
 
-         if (print_debug) {
-            printf(" by %3d, new peak = %3d\n", 
-                   peaks[r], peak(cross_correlate(rows[r], rows[r-1])));
-         }
-      } /* if is_in_array */
-   } /* loop over rows */
+      rows[r].shift(peaks[r]); /* actually apply the shift */
+
+      if (print_debug) {
+         printf("new peak = %3d\n", peak(cross_correlate(rows[r], rows[r-1])));
+      }
+   }
 
    return true;
 }

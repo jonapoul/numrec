@@ -1,16 +1,18 @@
 #include "../global.h"
 
 int main(int argc, char** argv) {
-   /* grab the inputfile number and the iteration limit from command line */
+   /* grab the inputfile number, the iteration limit, and output debug switch
+      from command line arguments */
    std::string filename;
    size_t iteration_limit;
-   get_arguments(argc, argv, &filename, &iteration_limit);
+   bool print_debug;
+   get_arguments(argc, argv, &filename, &iteration_limit, &print_debug);
 
-   const bool print_debug = false;
    Image img(filename, print_debug);
-   printf("Filename = %s\n", img.filename.c_str());
-   printf("Height   = %zu\n", img.height);
-   printf("Width    = %zu\n\n", img.width);
+   printf("Filename     = %s\n", img.filename.c_str());
+   printf("Height       = %zu\n", img.height);
+   printf("Width        = %zu\n", img.width);
+   printf("Debug output = %s\n\n", (print_debug ? "true" : "false"));
 
    /* do the legwork, backing out if we've exceeded the run limit or if no 
       lines were shifted */

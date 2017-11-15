@@ -18,7 +18,7 @@ bool is_in_array(const size_t x, const std::vector<size_t>& arr);
 #define ASSERT(statement) my_assert(statement,#statement,__FILE__,__FUNCTION__,__LINE__)
 void my_assert(const bool condition, const char* str, const char* file, const char* func, const int line);
 #define ROUND(x) (x>0)?(int)(x+0.5):(int)(x-0.5)
-void get_arguments(int argc, char** argv, std::string* filename, size_t* run_limit);
+void get_arguments(int argc, char** argv, std::string* filename, size_t* run_limit, bool* print_debug);
 
 /* 
    CP3 

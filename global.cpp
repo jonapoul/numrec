@@ -64,22 +64,23 @@ void my_assert(const bool condition,
 /* captures two integer arguments from command line
       1) image number to use, between 1 and 4 (default = 1)
       2) number of synchronisation runs to complete, at least 1 (default = 20)
+      3) 0 = simple output, 1 = verbose output
 */
 void get_arguments(int argc, 
                    char** argv, 
         /*output*/ std::string* filename, 
-        /*output*/ size_t* run_limit) {
+        /*output*/ size_t* run_limit,
+        /*output*/ bool* print_debug) {
 
-   int image_number = 1; /* default to desync1.pgm */
+   int first_argument = 1; /* default to desync1.pgm */
    if (argc > 1) {
       ASSERT( isdigit(argv[1][0]) );
-      image_number = atoi(argv[1]);
-      ASSERT( image_number >= 1 && image_number <= 4 );
+      first_argument = atoi(argv[1]);
+      ASSERT( first_argument >= 1 && first_argument <= 4 );
    }
-
-   /* build the filepath and test if it's valid */
+   /* build the filepath and test whether it's valid */
    char buf[100];
-   snprintf(buf, 100, "fft/images/desync%d.pgm", image_number);
+   snprintf(buf, 100, "fft/images/desync%d.pgm", first_argument);
    *filename = std::string(buf);
    std::ifstream image_file(buf);
    ASSERT( image_file.is_open() );
@@ -88,7 +89,16 @@ void get_arguments(int argc,
    *run_limit = 20; /* default to 20 runs, enough to cover all iterations */
    if (argc > 2) {
       ASSERT( isdigit(argv[2][0]) );
-      *run_limit = atoi(argv[2]);
-      ASSERT( *run_limit >= 1 );
+      const int second_argument = atoi(argv[2]);
+      ASSERT( second_argument >= 1 );
+      *run_limit = second_argument;
+   }
+
+   *print_debug = false; /* default to not printing verbose output */
+   if (argc > 3) {
+      ASSERT( isdigit(argv[3][0]) );
+      const int third_argument = atoi(argv[3]);
+      ASSERT( third_argument == 0 || third_argument == 1 );
+      *print_debug = (bool)third_argument;
    }
 }
