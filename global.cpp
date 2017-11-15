@@ -61,7 +61,7 @@ void my_assert(const bool condition,
    }
 }
 
-/* captures two integer arguments from command line
+/* captures three integer arguments from command line
       1) image number to use, between 1 and 4 (default = 1)
       2) number of synchronisation runs to complete, at least 1 (default = 20)
       3) 0 = simple output, 1 = verbose output

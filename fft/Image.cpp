@@ -39,8 +39,8 @@ Image::Image(const std::string& file,
          this->pixels[i++] = (double)pix;
       if (i < pixel_count) {
          /* At the end of each inputLine theres a new line character, which 
-            isn't picked up without this bit. Took me ages to figure this out */
-         this->pixels[i++] = 10; // 10 = ascii code for '\n'
+            isn't picked up without this bit. 10 = ascii code for '\n' */
+         this->pixels[i++] = 10;
       }
    }
    infile.close();
@@ -60,30 +60,30 @@ Image::~Image() {
 
 /* These are the rules I put together to decide whether a row needs to be 
    shifted or not. They depend mostly on the precalculated x-positions of the 
-   cross-correlation peaks. The debug printing of integers is printed to the 
+   cross-correlation peaks. The debug printing of integers is output to the 
    start of each line to indicate which option was chosen, just to help follow 
    the flow of logic. I realise that some of these are probably redundant but 
-   I didn't want to risk breaking it
+   I didn't want to risk breaking everything by disrupting it
    
       r     = row index that we're looking at
       peaks = array of precalculated x-coordinates of each row's 
               cross-correlation peak
-    */
+*/
 bool Image::row_should_be_shifted(const size_t r, 
                                   const std::vector<int>& peaks) {
    /* 0 shift => not shifting (obviously) */
    if (peaks[r] == 0) {
-      if (print_debug) printf(" 0 ");
+      if (print_debug) printf("0");
       return false;
    }
    /* shifting too far, probably a mistake somewhere */
    if (abs(peaks[r]) > rows[r].width/10.0) {
-      if (print_debug) printf(" 1 ");
+      if (print_debug) printf("1");
       return false;
    }
    /* ignore any rows that have already had shifts applied */
    if (rows[r].has_been_shifted) {
-      if (print_debug) printf(" 2 ");
+      if (print_debug) printf("2");
       return false;
    }
    /* made to detect blocks of 2 shifted rows immediately before this row */
@@ -93,28 +93,28 @@ bool Image::row_should_be_shifted(const size_t r,
        && abs(peaks[r])       > 5 
        && peaks[r]*peaks[r-1] < 0 
        && peaks[r]*peaks[r-2] < 0 ) {
-      if (print_debug) printf(" 3 ");
+      if (print_debug) printf("3");
       return false;
    }
    /* to detect a single shifted line on its own */
    if (   r        <   peaks.size()-1
        && peaks[r] == -peaks[r+1]
        && peaks[r] !=  0) {
-      if (print_debug) printf(" 4 ");
+      if (print_debug) printf("4");
       return true;
    }
    /* if the previous row is nonzero and too close to the current.
       Mostly pops up in the diagonal trees at the bottom of desync1  */
    if (   peaks[r-1] != 0 
        && abs(peaks[r]-peaks[r-1]) < 2) {
-      if (print_debug) printf(" 5 ");
+      if (print_debug) printf("5");
       return false;
    }
    /* detect annoying blocks of two, e.g. lines 147-9 in desync3.pgm */
    if (r > 1) {
       const int sum = peaks[r] + peaks[r-1] + peaks[r-2];
       if (abs(sum) <= 3) {
-         if (print_debug) printf(" 6 ");
+         if (print_debug) printf("6");
          return false;
       }
    }
@@ -122,22 +122,23 @@ bool Image::row_should_be_shifted(const size_t r,
    if (r > 2) {
       const int sum = peaks[r] + peaks[r-1] + peaks[r-2] + peaks[r-3];
       if (abs(sum) <= 4) {
-         if (print_debug) printf(" 7 ");
+         if (print_debug) printf("7");
          return false;
       }
    }
    /* any other noticable difference between two peak coordinates */
    if (abs(peaks[r] - peaks[r-1]) > 5) {
-      if (print_debug) printf(" 8 ");
+      if (print_debug) printf("8");
       return true;
    }
 
    /* if all else fails, shift it just in case */
-   if (print_debug) printf(" X ");
+   if (print_debug) printf("X");
    return true;
 }
 
-/* function to do the bulk of the work */
+/* function to do the bulk of the work, with some debug printing to follow
+   what's happening and why */
 bool Image::synchronise() {
    std::vector<int> peaks(height);
    std::vector<size_t> rows_to_be_shifted;
@@ -149,13 +150,15 @@ bool Image::synchronise() {
    }
    /* determine which rows need to be shifted */
    for (size_t r = 1; r < height; r++) {
+      if (print_debug) printf("logic=");
       bool shift_it =    row_should_be_shifted(r, peaks) 
                       && !is_in_array(r-1, rows_to_be_shifted);
       if (shift_it) rows_to_be_shifted.push_back(r);
       if (print_debug) {
-         printf("row=%3zu peak at x=%4d prev=%s chosen=%s\n", 
-                r, peaks[r], (rows[r].has_been_shifted?"yes":"no "), 
-                (shift_it?"yes":"no "));
+         printf("; row=%3zu; ", r);
+         printf("peak=%4d; ", peaks[r]);
+         printf("shifted=%s; ", (rows[r].has_been_shifted?"true ":"false"));
+         printf("chosen=%s\n", (shift_it?"true":"false"));
       }
    }
    /* print out some info about what's been shifted */
@@ -175,13 +178,14 @@ bool Image::synchronise() {
    /* apply shifts to rows that actually need it */
    for (auto r : rows_to_be_shifted) {
       if (print_debug) {
-         printf("shifting row %3zu by %3d", r, peaks[r]);
+         printf("shifting row %3zu by %3d;", r, peaks[r]);
       }
 
       rows[r].shift(peaks[r]); /* actually apply the shift */
 
       if (print_debug) {
-         printf("new peak = %3d\n", peak(cross_correlate(rows[r], rows[r-1])));
+         const Row xcorr = cross_correlate(rows[r], rows[r-1]);
+         printf(" new peak = %3d\n", peak(xcorr));
       }
    }
 
