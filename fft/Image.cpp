@@ -103,12 +103,14 @@ bool Image::row_should_be_shifted(const size_t r,
       if (print_debug) printf("4");
       return true;
    }
-   /* if the previous row is nonzero and too close to the current.
-      Mostly pops up in the diagonal trees at the bottom of desync1  */
-   if (   peaks[r-1] != 0 
-       && abs(peaks[r]-peaks[r-1]) < 2) {
+   /* if the previous peak is nonzero and equal to the current.
+      Mostly pops up in the diagonal shadows at the bottom of desync1  */
+   if (   r             > 2 
+       && abs(peaks[r]) >= 2
+       && peaks[r-1]    == peaks[r]) {
+      rows[r].has_been_shifted = true;
       if (print_debug) printf("5");
-      return false;
+      return false; 
    }
    /* detect annoying blocks of two, e.g. lines 147-9 in desync3.pgm */
    if (r > 1) {
@@ -121,7 +123,7 @@ bool Image::row_should_be_shifted(const size_t r,
    /* detect blocks of three shifted lines */
    if (r > 2) {
       const int sum = peaks[r] + peaks[r-1] + peaks[r-2] + peaks[r-3];
-      if (abs(sum) <= 4) {
+      if (abs(sum) <= 3) {
          if (print_debug) printf("7");
          return false;
       }

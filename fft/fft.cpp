@@ -1,5 +1,20 @@
 #include "../global.h"
 
+/*
+   
+   Run as:
+      ./syncer <image_number> <iteration_limit> <print_debug>
+      
+   image_number    = between 1 and 4, depending on which image you're using in 
+                     the "images" directory. Default = 1
+   iteration_limit = max integer number of synchronisation iterations to 
+                     complete. Default = 20
+   print_debug     = 0 or 1, depending on whether you want the program to spit 
+                     out all of it's debug output (in case you want to follow 
+                     the flow of logic). Default = 0 = no debug output
+
+*/
+
 int main(int argc, char** argv) {
    /* grab the inputfile number, the iteration limit, and output debug switch
       from command line arguments */

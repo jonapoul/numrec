@@ -49,12 +49,6 @@ void FFTPlotter::plot(const Row& r) {
    }
    plt::plot(x, re, "r-");
    plt::tight_layout();
-   plt::title("title");
    plt::grid(true);
-   // plt::legend();
-
-   char titlebuf[100];
-   snprintf(titlebuf, 100, "%zu to %zu", r.row_index, r.row_index-1);
-   plt::title(titlebuf);
    plt::show();
 }

@@ -124,7 +124,17 @@ Row Row::conjugate() const {
 /* creates a shortened row object, starting from index 'first' of the pixels 
    array and stretching for 'length' pixels. Basically for allowing 
    cross-correlations between two rows of different widths, only taking into 
-   account the pixel indices covered by both rows */
+   account the pixel indices covered by both rows 
+   
+   -----------------------------------------
+   | A | B | C | D | E | F | G | H | I | J |
+   -----------------------------------------
+   If we have a row as above and we pass first=3 and length=5 to this function,
+   we will return  a row consisting of the following pixels:
+   ---------------------
+   | D | E | F | G | H |
+   ---------------------
+*/
 Row Row::subrow(const size_t first, 
                 const size_t length) const {
    if (length == 0) return *this;
