@@ -11,7 +11,6 @@
 Image::Image(const std::string& file,
              const bool is_debug)
          : filename(file), 
-           blank_pixel(1),
            print_debug(is_debug) {
    /* check that image filename is valid */ 
    const size_t pos = filename.find_last_of(".");
@@ -103,9 +102,9 @@ bool Image::row_should_be_shifted(const size_t r,
       if (print_debug) printf("4");
       return true;
    }
-   /* if the previous peak is nonzero and equal to the current.
-      Mostly pops up in the diagonal shadows at the bottom of desync1  */
-   if (   r             > 2 
+   /* if the previous peak is nonzero and equal to the current. Mostly pops 
+      up in the diagonal tree shadows at the bottom of desync1 */
+   if (   r             >  2 
        && abs(peaks[r]) >= 2
        && peaks[r-1]    == peaks[r]) {
       rows[r].has_been_shifted = true;
@@ -128,12 +127,17 @@ bool Image::row_should_be_shifted(const size_t r,
          return false;
       }
    }
+   /* if the previous row is set to be shifted, wait til the next 
+      iteration just in case */
+   if (abs(peaks[r-1]) > rows[r].width/100.0) {
+      if (print_debug) printf("8");
+      return false;
+   }
    /* any other noticable difference between two peak coordinates */
    if (abs(peaks[r] - peaks[r-1]) > 5) {
-      if (print_debug) printf("8");
+      if (print_debug) printf("9");
       return true;
    }
-
    /* if all else fails, shift it just in case */
    if (print_debug) printf("X");
    return true;
@@ -234,7 +238,16 @@ Row Image::cross_correlate(const Row& row1,
    return inversed;
 }
 
-/* save the shifted image to file */
+/* save the shifted image to file. Any pixels outside the range of the array
+   are set to the edge colour value. So if we have a Row object like:
+   -----------------------------------------
+   |   |   |   | A | B | C | D | E | F |   |
+   -----------------------------------------
+   the saved image will come out as
+   -----------------------------------------
+   | A | A | A | A | B | C | D | E | F | F |
+   -----------------------------------------
+*/
 void Image::save() const {
    const size_t pos_extension     = filename.find_last_of(".");
    const std::string no_extension = filename.substr(0, pos_extension);
@@ -251,14 +264,15 @@ void Image::save() const {
    file << width << " " << height << " 255\n";
 
    for (size_t r = 0; r < height; r++) {
-      const size_t start_r = rows[r].starting_index;
-      const size_t width_r = rows[r].width;
+      const Row R = rows[r];
+      const size_t start_r = R.starting_index;
+      const size_t width_r = R.width;
       size_t j = 0;
       for (size_t c = 0; c < width; c++) {
          double temp;
-         if      (c < start_r)         temp = blank_pixel;
-         else if (c < start_r+width_r) temp = rows[r].magnitude(j++);
-         else                          temp = blank_pixel;
+         if      (c < start_r)         temp = R.pixels[0][0];
+         else if (c < start_r+width_r) temp = R.magnitude(j++);
+         else                          temp = R.pixels[width_r-1][0];
          file << (unsigned char)temp;
       }
    }
