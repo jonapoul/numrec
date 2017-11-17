@@ -7,6 +7,7 @@
 
 #include "../global.h"
 #include "Image.h"
+#include "FFTPlotter.h"
 
 Image::Image(const std::string& file,
              const bool is_debug)

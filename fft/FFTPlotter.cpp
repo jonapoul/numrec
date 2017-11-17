@@ -20,15 +20,6 @@ void FFTPlotter::plot(const Row& r1,
       x2[i] = i - 0.5*r2.width + (r2.width%2==1?0.5:0) + r2.starting_index;
    }
 
-   // plt::clf();
-   // plt::subplot(2, 1, 1);
-   // plt::named_plot("left shift", x1, re1, "r-");
-   // plt::tight_layout();
-   // plt::grid(true);
-   // plt::legend();
-   // plt::title(titlestr);
-
-   //plt::subplot(2, 1, 2);
    plt::named_plot("r1", x1, re1, "r-");
    plt::named_plot("r2", x2, re2, "g-");
    plt::tight_layout();
@@ -48,7 +39,9 @@ void FFTPlotter::plot(const Row& r) {
       x[i] = -0.5*r.width + i + (r.width%2==1?0.5:0);
    }
    plt::plot(x, re, "r-");
-   plt::tight_layout();
+   //plt::tight_layout();
    plt::grid(true);
+   plt::xlabel("x");
+   plt::ylabel("h(x)");
    plt::show();
 }
