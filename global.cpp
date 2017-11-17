@@ -71,6 +71,15 @@ void get_arguments(int argc,
         /*output*/ std::string* filename, 
         /*output*/ size_t* run_limit,
         /*output*/ bool* print_debug) {
+   if (argc == 1) {
+      printf("\nArguments:\n");
+      printf("\t1: image number   = integer from 1-4 (default=1)\n");
+      printf("\t2: iteration limt = integer >= 1     (default=20)\n");
+      printf("\t3: verbose output = 1 or 0           (default=0)\n");
+      printf("e.g. running \"%s 2 10 1\" ", argv[0]);
+      printf("will read desync2.pgm, run the synchronisation for 10 "); 
+      printf("iterations and print debug output\n\n");
+   }
 
    int first_argument = 1; /* default to desync1.pgm */
    if (argc > 1) {

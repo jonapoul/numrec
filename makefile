@@ -1,7 +1,7 @@
-CC      = g++
+CC      = g++ -std=c++14
 CCFLAGS = -c -Wall
 LDFLAGS = -Wall
-PLOT    = -std=c++14 -I/usr/include/python2.7 -lpython2.7
+PLOT    = -I/usr/include/python2.7 -lpython2.7
 
 # cp2
 CP2_CPP := $(wildcard cp2/*.cpp)
@@ -17,7 +17,6 @@ MINUIT      = -I/usr/include/minuit -fopenmp
 FFT_CPP := $(wildcard fft/*.cpp)
 FFT_OBJ := $(addprefix obj/,$(notdir $(FFT_CPP:.cpp=.o)))
 FFT      = -lfftw3
-
 
 default: checkpoint1 checkpoint2 checkpoint3 fft
 

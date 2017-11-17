@@ -243,7 +243,7 @@ Row Image::cross_correlate(const Row& row1,
    -----------------------------------------
    |   |   |   | A | B | C | D | E | F |   |
    -----------------------------------------
-   the saved image will come out as
+   the saved line in the image will come out as
    -----------------------------------------
    | A | A | A | A | B | C | D | E | F | F |
    -----------------------------------------
