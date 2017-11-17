@@ -2,6 +2,8 @@
 #define DATE_H
 
 #include <string>
+#include <fstream>
+#include <iostream>
 
 class Date {
 public:
@@ -14,7 +16,8 @@ public:
    int month() const { return m_; }
    int day()   const { return d_; }
 
-   std::string str() const;
+   std::string str(const char separator = '/',
+                   const bool use_ddmmyy = false) const;
 
    Date  operator+ (const Date&) const;
    Date  operator- (const Date&) const;
@@ -32,6 +35,9 @@ public:
    bool  operator< (const Date&) const;
    bool  operator>=(const Date&) const;
    bool  operator<=(const Date&) const;
+
+   friend std::istream& operator>>(std::istream& is, Date& d);
+   friend std::ostream& operator<<(std::ostream& os, const Date& d);
 
 private:
    int y_;

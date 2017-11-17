@@ -4,9 +4,8 @@
 #include "Weather.h"
 
 int main(int argc, char** argv) {
-   const int file_slice = 0;
-   const std::string filename = "data/basic.txt";
-   Weather w(filename, file_slice);
+   const std::string filename = "machine/data/basic.txt";
+   Weather w(filename);
 
    printf("###################################\n");
    printf("     Step 3: Inspect the data:\n");

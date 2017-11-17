@@ -10,6 +10,10 @@
 #include "fft/Row.h"
 
 /*
+   MACHINE
+*/
+
+/*
    FFT
 */
 void fftw_complex_to_vectors(const fftw_complex* c, const size_t N, std::vector<double>* re, std::vector<double>* im);

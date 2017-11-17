@@ -25,7 +25,8 @@ Date::Date(const int yy,
 Date::Date(const std::string& str) {
    this->y_ = std::stoi(str.substr(0, 4));
    this->m_ = std::stoi(str.substr(5, 2));
-   this->d_ = std::stoi(str.substr(7, 2));
+   this->d_ = std::stoi(str.substr(8, 2));
+   this->balance();
 }
 
 void Date::balance() {
@@ -53,9 +54,16 @@ void Date::balance() {
    }
 }
 
-std::string Date::str() const {
+std::string Date::str(const char separator,
+                      const bool use_ddmmyy) const {
    char buf[20];
-   snprintf(buf, 20, "%4d/%02d/%02d", this->y_, this->m_, this->d_);
+   if (use_ddmmyy) {
+      snprintf(buf, 20, "%02d%c%02d%c%4d", 
+               this->d_, separator, this->m_, separator, this->y_);
+   } else {
+      snprintf(buf, 20, "%4d%c%02d%c%02d", 
+               this->y_, separator, this->m_, separator, this->d_);
+   }
    return std::string(buf);
 }
 
@@ -182,4 +190,15 @@ bool Date::operator>=(const Date& that) const {
 
 bool Date::operator<=(const Date& that) const {
    return !(*this > that);
+}
+
+std::istream& operator>>(std::istream& stream, Date& date) {
+   std::string str;
+   stream >> str;
+   date = Date(str);
+   return stream;
+}
+
+std::ostream& operator<<(std::ostream& os, const Date& d) {
+   return os << d.str();
 }
