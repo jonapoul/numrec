@@ -12,12 +12,16 @@
 /*
    MACHINE
 */
+template<class T> bool is_in_array(const T x, const std::vector<T>& arr) {
+   for (const auto a : arr) if (a == x) return true;
+   return false;
+}
 
 /*
    FFT
 */
 void fftw_complex_to_vectors(const fftw_complex* c, const size_t N, std::vector<double>* re, std::vector<double>* im);
-bool is_in_array(const size_t x, const std::vector<size_t>& arr);
+// bool is_in_array(const size_t x, const std::vector<size_t>& arr);
 #define PRINT(var) std::cout<<#var<<" = "<<var<<std::endl;
 #define ASSERT(statement) my_assert(statement,#statement,__FILE__,__FUNCTION__,__LINE__)
 void my_assert(const bool condition, const char* str, const char* file, const char* func, const int line);

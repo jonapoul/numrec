@@ -33,17 +33,6 @@ void fftw_complex_to_vectors(const fftw_complex* c,
    }
 }
 
-/* returns true if the number x is somewhere in the array, false otherwise */
-bool is_in_array(const size_t x, 
-                 const std::vector<size_t>& arr) {
-   for (const auto a : arr) {
-      if (a == x) {
-         return true;
-      }
-   }
-   return false;
-};
-
 /* used to track down any caught errors. the macro ASSERT() captures a boolean
    statement and passes that here, along with the stringified version of that 
    statement and its file, function and line number */
