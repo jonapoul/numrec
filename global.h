@@ -16,6 +16,8 @@ template<class T> bool is_in_array(const T x, const std::vector<T>& arr) {
    for (const auto a : arr) if (a == x) return true;
    return false;
 }
+void print_vector(const std::vector<std::string>& vec);
+void get_arguments(int argc, char** argv, std::string* filename, int* lines);
 
 /*
    FFT

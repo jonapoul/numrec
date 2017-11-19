@@ -1,9 +1,54 @@
 #include <string>
 #include <algorithm>
+#include <iostream>
 #include <fstream>
 #include <limits>
 
 #include "global.h"
+
+void print_vector(const std::vector<std::string>& vec) {
+   for (size_t i = 0; i < vec.size(); i++) {
+      std::cout << i << '/' << vec.size()-1 << vec[i] << '\n';
+   }
+   printf("\n");
+}
+
+void get_arguments(int argc, 
+                   char** argv, 
+        /*output*/ std::string* filename, 
+        /*output*/ int* lines) {
+   if (argc == 1) {
+      printf("\nArguments:\n");
+      printf("\t1: input datastream = integer from 0-2 (default = 2 = basic.txt)\n");
+      printf("\t2: lines to read    = integer >= 0     (default = 0 = all lines)\n");
+      printf("e.g. running \"%s 1 1000\" ", argv[0]);
+      printf("will read advanced.txt, reading the first 1000 records\n\n"); 
+   }
+
+   int first_argument = 2; /* default to basic.txt */
+   if (argc > 1) {
+      ASSERT( isdigit(argv[1][0]) );
+      first_argument = atoi(argv[1]);
+      ASSERT( first_argument >= 0 || first_argument <= 2 );
+   }
+   /* build the filepath and test whether it's valid */
+   switch (first_argument) {
+      case 0: *filename = "machine/data/full.txt";     break;
+      case 1: *filename = "machine/data/advanced.txt"; break;
+      case 2: *filename = "machine/data/basic.txt";    break;
+   }
+   std::ifstream text_file(*filename);
+   ASSERT( text_file.is_open() );
+   text_file.close();
+
+   *lines = 0; /* default to 0 = read every line */
+   if (argc > 2) {
+      ASSERT( isdigit(argv[2][0]) );
+      const int second_argument = atoi(argv[2]);
+      ASSERT( second_argument >= 0 );
+      *lines = second_argument;
+   }
+}
 
 bool is_in_range(double min, 
                  double x, 

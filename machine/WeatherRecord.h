@@ -3,29 +3,30 @@
 
 #include <string>
 #include <vector>
-using std::string;
-using std::vector;
 
 class WeatherRecord {
 public:
    WeatherRecord();
    WeatherRecord(const WeatherRecord& f);
-   WeatherRecord(const string& line);
+   WeatherRecord(const std::string& line);
 
-   void print() const;
-   void append(const string& value);
+   void append(const std::string& value);
    size_t num_features() const { return features_.size(); }
 
-   string& operator[](const size_t i);
-   const string& operator[](const size_t i) const;
-   vector<string>::iterator begin();
-   void erase(vector<string>::iterator beg);
-
+   std::string& operator[](const size_t i);
+   const std::string& operator[](const size_t i) const;
+   std::vector<std::string>::iterator begin();
+   void erase(std::vector<std::string>::iterator beg);
+   void erase(const size_t index);
+   
+   std::string str() const;
+   void print() const;
+   friend std::ostream& operator<<(std::ostream& os, const WeatherRecord& d);
 
 private:
    static int counter;
    int index_;
-   vector<string> features_;
+   std::vector<std::string> features_;
 };
 
 #endif
