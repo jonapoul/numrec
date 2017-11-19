@@ -1,14 +1,14 @@
-#ifndef WeatherRecord_H
-#define WeatherRecord_H
+#ifndef DATAPOINT_H
+#define DATAPOINT_H
 
 #include <string>
 #include <vector>
 
-class WeatherRecord {
+class DataPoint {
 public:
-   WeatherRecord();
-   WeatherRecord(const WeatherRecord& f);
-   WeatherRecord(const std::string& line);
+   DataPoint();
+   DataPoint(const DataPoint& f);
+   DataPoint(const std::string& line);
 
    void append(const std::string& value);
    size_t num_features() const { return features_.size(); }
@@ -22,7 +22,7 @@ public:
    
    std::string str() const;
    void print() const;
-   friend std::ostream& operator<<(std::ostream& os, const WeatherRecord& d);
+   friend std::ostream& operator<<(std::ostream& os, const DataPoint& d);
 
 private:
    static int counter;

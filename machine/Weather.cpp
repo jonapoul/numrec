@@ -10,7 +10,7 @@
 #include "../global.h"
 #include "Weather.h"
 #include "Date.h"
-#include "WeatherRecord.h"
+#include "DataPoint.h"
 #include "Coords.h"
 #include "Station.h"
 
@@ -33,11 +33,47 @@ Weather::Weather(const string& file,
    this->observation_start_ = Date(2017, 10, 23);
 }
 
+Date Weather::start_date() const { 
+   return observation_start_; 
+}
+
+int Weather::datastream() const { 
+   return datastream_; 
+}
+
+size_t Weather::num_entries() const { 
+   return data_.size(); 
+}
+
+size_t Weather::num_targets() const { 
+   return target_names_.size();
+}
+
+size_t Weather::num_features() const { 
+   return feature_names_.size(); 
+}
+
+size_t Weather::num_stations() const { 
+   return station_data_.size(); 
+}
+
+string Weather::filename() const { 
+   return filename_; 
+}
+
+vector<string> Weather::target_names() const { 
+   return target_names_; 
+}
+
+vector<string> Weather::feature_names() const { 
+   return feature_names_; 
+}
+
 bool Weather::load() {
    std::ifstream filestream(this->filename_);
    ASSERT( filestream.is_open() );
 
-   /* count how many WeatherRecords we're reading in to allocate space */
+   /* count how many DataPoints we're reading in to allocate space */
    size_t line_count = 0;
    string line;
    while (getline(filestream, line)) 
@@ -50,7 +86,7 @@ bool Weather::load() {
    if (this->lines_to_pick_ > 0) 
       line_count = this->lines_to_pick_;
 
-   this->data_ = vector<WeatherRecord>(line_count);
+   this->data_ = vector<DataPoint>(line_count);
 
    /* grab the datastream type */
    getline(filestream, line);
@@ -59,9 +95,9 @@ bool Weather::load() {
    else if (line == "BASIC")    this->datastream_ = 2;
    else                         return false;
 
-   /* construct the WeatherRecords from each line */
+   /* construct the DataPoints from each line */
    for (int i = 0; getline(filestream, line) && i < (int)line_count; i++) {
-      data_[i] = WeatherRecord(line);
+      data_[i] = DataPoint(line);
    }
    return true;
 }
@@ -174,7 +210,7 @@ Coords Weather::get_new_coords(const Coords& c,
 }
 
 /* time between observation_start and wr.time in decimal hours */
-double Weather::relative_time(const WeatherRecord& wr) const {
+double Weather::relative_time(const DataPoint& wr) const {
    struct std::tm tm_wr;
    const string date = wr[ feature_index("Date") ];
    std::istringstream iss_wr(date);
@@ -258,7 +294,7 @@ void Weather::select(vector<string> selected_features) {
    this->feature_names_ = temp_names;
 
    for (size_t i = 0; i < num_entries(); i++) {
-      WeatherRecord wr(this->data_[i]);
+      DataPoint wr(this->data_[i]);
       wr.empty();
       for (size_t j = 0; j < N_selected; j++) {
          const size_t index = feature_indices[j];
@@ -270,7 +306,7 @@ void Weather::select(vector<string> selected_features) {
 
 /* throw away any records with any invalid features */
 void Weather::discard() {
-   vector<WeatherRecord> temp_records;
+   vector<DataPoint> temp_records;
    for (size_t i = 0; i < num_entries(); i++) {
       bool save_this_record = true;
       for (size_t j = 0; j < this->data_[i].num_features(); j++) {
@@ -316,7 +352,7 @@ void Weather::export_to_file(const string& fname) {
    */
 }
 
-vector<WeatherRecord> Weather::get_observations(const string& id,
+vector<DataPoint> Weather::get_observations(const string& id,
                                                 const string& date,
                                                 const string& time,
                                                 const vector<string>& features) {
@@ -329,7 +365,7 @@ vector<WeatherRecord> Weather::get_observations(const string& id,
    if (time.length() > 0) time_valid = true;
 
 
-   vector<WeatherRecord> stats = this->data_;
+   vector<DataPoint> stats = this->data_;
    /* erase all records with the wrong station id, wrong date or wrong time */
    for (int i = (int)stats.size()-1; i >= 0; i--) {
       if (   (id_valid   && stats[i][id_index]   != id) 
@@ -348,7 +384,7 @@ vector<WeatherRecord> Weather::get_observations(const string& id,
          }
       }
       for (auto& s : stats) {
-         WeatherRecord temp(s);
+         DataPoint temp(s);
          temp.empty();
          for (auto i : indices)
             temp.append(s[i]);
@@ -403,31 +439,38 @@ void Weather::test() {
    printf("\nNumber of entries  = %zu\n", this->num_entries());
    printf("Number of targets  = %zu\n", this->num_targets());
    printf("Target Names:\n");
-   for (auto t : this->target_names_) std::cout << '\t' << t << '\n';
+   for (auto t : this->target_names_) 
+      std::cout << '\t' << t << '\n';
 
    printf("\nNumber of features = %zu\n", this->num_features());
    printf("Feature Names:\n");
-   for (auto f : this->feature_names_) std::cout << '\t' << f << '\n';
+   for (auto f : this->feature_names_) 
+      std::cout << '\t' << f << '\n';
 
    /* print all station data */
    printf("\nNumber of weather stations = %zu\n", this->num_stations());
    printf("[ ID, Name, Latitude, Longitude, Distance ]\n");
    const auto stations = this->station_data("all");
-   for (const auto s : stations) s.print();
+   for (const auto s : stations) 
+      s.print();
+   exit(1);
 
    /* grab data about just edinburgh station */
    printf("\nStation data for EDINBURGH/GOGARBANK:\n");
    const auto edinburgh = this->station_data("EDINBURGH/GOGARBANK");
-   for (const auto e : edinburgh) e.print();
+   for (const auto e : edinburgh) 
+      e.print();
 
    /* same for id = 3225 */
    printf("\nStation data for ID 3225:\n");
    const auto station3225 = this->station_data("3225");
-   for (const auto s : station3225) s.print();
+   for (const auto s : station3225) 
+      s.print();
 
    printf("\nTemperature data:\n");
    const auto temp_data = this->feature_data("Temperature");
-   for (const auto t : temp_data) printf("%5s ", t.c_str());
+   for (const auto t : temp_data) 
+      printf("%5s ", t.c_str());
    printf("Done!\n");
 
    printf("\n\n######################################\n");
@@ -436,7 +479,9 @@ void Weather::test() {
    /* since most invalid values are in Gust, reset any invalid values in
       there from -99999 to 0 */
    auto new_gust = this->feature_data("Gust");
-   for (auto& g : new_gust) { if (g == "-99999") g = "0"; }
+   for (auto& g : new_gust) { 
+      if (g == "-99999") g = "0"; 
+   }
    this->modify("Gust", new_gust);
    //for (const auto r : this->data_) r.print();
    printf("Done!\n");
@@ -481,12 +526,14 @@ void Weather::test() {
                             "Temperature", 
                             "Dew Point" };
    auto dewpoint = this->get_observations("3166", "2017-10-24", "", feats);
-   for (const auto d : dewpoint) d.print();
+   for (const auto d : dewpoint) 
+      d.print();
 
    /* nearest stations to a point 100km to the NW of edinburgh*/
    printf("\nNearest stations 100km NW of Edinburgh:\n");
    auto nearest_stations = this->find_stations(edinburgh[0].coords, 100, -45, 10, 75);
-   for (const auto n : nearest_stations) n.print();
+   for (const auto n : nearest_stations) 
+      n.print();
    const Station closest = nearest_stations[0];
    string obs_date = "2017-10-24";
    printf("\nUsing station #%s on %s:\n", closest.id.c_str(), obs_date.c_str());
@@ -496,7 +543,8 @@ void Weather::test() {
              "Wind Direction" };
    printf("[Time since midnight (min), Pressure, Pressure Trend, Wind Direction]\n");
    const auto observations = this->get_observations(closest.id, obs_date, "", feats);
-   for (const auto o : observations) o.print();
+   for (const auto o : observations) 
+      o.print();
    printf("Done!\n");
 
    printf("\n######################################\n");
@@ -525,7 +573,8 @@ void Weather::test() {
       method to filter the data */
    feats = { "Temperature", "Visibility", "Pressure", "Pressure Trend", "Humidity" };
    printf("[ ");
-   for (const auto f : feats) printf("\"%s\" ", f.c_str());
+   for (const auto f : feats) 
+      printf("\"%s\" ", f.c_str());
    printf("]\n");
    this->select(feats);
    for (const auto r : this->data_)
