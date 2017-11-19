@@ -18,6 +18,7 @@ public:
    std::vector<std::string>::iterator begin();
    void erase(std::vector<std::string>::iterator beg);
    void erase(const size_t index);
+   void empty();
    
    std::string str() const;
    void print() const;

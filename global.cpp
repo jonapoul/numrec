@@ -8,7 +8,7 @@
 
 void print_vector(const std::vector<std::string>& vec) {
    for (size_t i = 0; i < vec.size(); i++) {
-      std::cout << i << '/' << vec.size()-1 << vec[i] << '\n';
+      std::cout << i << '/' << vec.size()-1 << ' ' << vec[i] << '\n';
    }
    printf("\n");
 }

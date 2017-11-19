@@ -12,12 +12,21 @@
 /*
    MACHINE
 */
+void my_assert(const bool condition, const char* str, const char* file, const char* func, const int line);
+#define ASSERT(statement) my_assert(statement,#statement,__FILE__,__FUNCTION__,__LINE__)
 template<class T> bool is_in_array(const T x, const std::vector<T>& arr) {
    for (const auto a : arr) if (a == x) return true;
    return false;
 }
 void print_vector(const std::vector<std::string>& vec);
 void get_arguments(int argc, char** argv, std::string* filename, int* lines);
+template<class T> size_t index_of(const T& elem, const std::vector<T>& arr) {
+   for (size_t i = 0; i < arr.size(); i++) {
+      if (elem == arr[i]) return i;
+   }
+   ASSERT( false );
+   return 0;
+}
 
 /*
    FFT
@@ -25,8 +34,6 @@ void get_arguments(int argc, char** argv, std::string* filename, int* lines);
 void fftw_complex_to_vectors(const fftw_complex* c, const size_t N, std::vector<double>* re, std::vector<double>* im);
 // bool is_in_array(const size_t x, const std::vector<size_t>& arr);
 #define PRINT(var) std::cout<<#var<<" = "<<var<<std::endl;
-#define ASSERT(statement) my_assert(statement,#statement,__FILE__,__FUNCTION__,__LINE__)
-void my_assert(const bool condition, const char* str, const char* file, const char* func, const int line);
 #define ROUND(x) (x>0)?(int)(x+0.5):(int)(x-0.5)
 void get_arguments(int argc, char** argv, std::string* filename, size_t* run_limit, bool* print_debug);
 

@@ -134,7 +134,7 @@ void Weather::set_feature_names() {
    this->feature_names_ = { "Station ID", "Station Name", "Elevation", 
                             "Latitude", "Longitude", "Date", 
                             "Time since midnight", "Gust", "Temperature", 
-                            "Visibilty", "Wind Direction", "Wind Speed", 
+                            "Visibility", "Wind Direction", "Wind Speed", 
                             "Pressure", "Pressure Trend", "Dew Point", 
                             "Humidity", "Weather Type" };
 }
@@ -258,7 +258,8 @@ void Weather::select(vector<string> selected_features) {
    this->feature_names_ = temp_names;
 
    for (size_t i = 0; i < num_entries(); i++) {
-      WeatherRecord wr;
+      WeatherRecord wr(this->data_[i]);
+      wr.empty();
       for (size_t j = 0; j < N_selected; j++) {
          const size_t index = feature_indices[j];
          wr.append( this->data_[i][index] );
@@ -347,11 +348,11 @@ vector<WeatherRecord> Weather::get_observations(const string& id,
          }
       }
       for (auto& s : stats) {
-         for (int i = (int)s.num_features(); i >= 0; i--) {
-            if (!is_in_array(i, indices)) {
-               s.erase(i);
-            }
-         }
+         WeatherRecord temp(s);
+         temp.empty();
+         for (auto i : indices)
+            temp.append(s[i]);
+         s = temp;
       }
    } 
    return stats;
@@ -370,8 +371,9 @@ vector<Station> Weather::find_stations(const Coords& origin,
       const Coords station_coords(s.coords);
       const double distance = this->get_distance(updated, station_coords);
       if (distance < max_threshold && distance > min_threshold) {
-         s.distance = distance;
-         nearby_stations.push_back(s);
+         Station in_range(s);
+         in_range.distance = distance;
+         nearby_stations.push_back(in_range);
       }
    }
    auto station_sort = [](const Station& s1, const Station& s2) {
@@ -381,10 +383,18 @@ vector<Station> Weather::find_stations(const Coords& origin,
    return nearby_stations;
 }
 
+/*
+   Basically FeatureExtract.py
+*/
 void Weather::test() {
-   printf("###################################\n");
-   printf("     Step 3: Inspect the data:\n");
-   printf("###################################\n");
+   printf("\n######################################\n");
+   printf("       Step 2 - Load Weather Data\n");
+   printf("######################################\n");
+   printf("Done!\n");
+
+   printf("\n######################################\n");
+   printf("       Step 3 - Inspect the Data\n");
+   printf("######################################\n");
 
    /* print all entries */
    //for (const auto r : this->data_) r.print();
@@ -418,6 +428,7 @@ void Weather::test() {
    printf("\nTemperature data:\n");
    const auto temp_data = this->feature_data("Temperature");
    for (const auto t : temp_data) printf("%5s ", t.c_str());
+   printf("Done!\n");
 
    printf("\n\n######################################\n");
    printf(" Step 4 - Recovering Incomplete Data\n");
@@ -452,30 +463,72 @@ void Weather::test() {
    this->modify("Pressure Trend", tendency);
    
    /* part 2: Enumerate Wind direction using 16 point compass index */
+   vector<string> wind_dirs{"NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", 
+                            "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
    auto direction = this->feature_data("Wind Direction");
-   for (auto& d : direction) {
-      if      (d == "NNE") d = "0";
-      else if (d == "NE")  d = "1";
-      else if (d == "ENE") d = "2";
-      else if (d == "E")   d = "3";
-      else if (d == "ESE") d = "4";
-      else if (d == "SE")  d = "5";
-      else if (d == "SSE") d = "6";
-      else if (d == "S")   d = "7";
-      else if (d == "SSW") d = "8";
-      else if (d == "SW")  d = "9";
-      else if (d == "WSW") d = "10";
-      else if (d == "W")   d = "11";
-      else if (d == "WNW") d = "12";
-      else if (d == "NW")  d = "13";
-      else if (d == "NNW") d = "14";
-      else if (d == "N")   d = "15";
-   }
+   for (auto& d : direction)
+      d = std::to_string( index_of(d, wind_dirs) );
    this->modify("Wind Direction", direction);
    printf("Done!\n");
 
    printf("\n######################################\n");
    printf("       Step 7 - Data Extraction\n");
    printf("######################################\n");
+   /* take some features from data in edinburgh on 24th oct 2017 */
+   printf("Temperature and Dew Point measurements for Edinburgh 24/10/2017:\n");
+   printf("[Time since midnight (mins), Temperature (C), Dew Point (C)]\n");
+   vector<string> feats = { "Time since midnight", 
+                            "Temperature", 
+                            "Dew Point" };
+   auto dewpoint = this->get_observations("3166", "2017-10-24", "", feats);
+   for (const auto d : dewpoint) d.print();
 
+   /* nearest stations to a point 100km to the NW of edinburgh*/
+   printf("\nNearest stations 100km NW of Edinburgh:\n");
+   auto nearest_stations = this->find_stations(edinburgh[0].coords, 100, -45, 10, 75);
+   for (const auto n : nearest_stations) n.print();
+   const Station closest = nearest_stations[0];
+   string obs_date = "2017-10-24";
+   printf("\nUsing station #%s on %s:\n", closest.id.c_str(), obs_date.c_str());
+   feats = { "Time since midnight", 
+             "Pressure", 
+             "Pressure Trend",
+             "Wind Direction" };
+   printf("[Time since midnight (min), Pressure, Pressure Trend, Wind Direction]\n");
+   const auto observations = this->get_observations(closest.id, obs_date, "", feats);
+   for (const auto o : observations) o.print();
+   printf("Done!\n");
+
+   printf("\n######################################\n");
+   printf("       Step 8 - Add New Features\n");
+   printf("######################################\n");
+   const int compass_points = 16;
+   auto north = feature_data("Wind Direction");
+   for (auto& n : north) {
+      const int northerliness = abs(compass_points/2 - stoi(n));
+      n = std::to_string( northerliness % (compass_points/2) );
+   }
+   auto west = feature_data("Wind Direction");
+   for (auto& w : west) {
+      const int westerliness = abs(compass_points/2 - stoi(w) - compass_points/4);
+      w = std::to_string( westerliness % (compass_points/2) );
+   }
+   this->append("Wind Relative North", north);
+   this->append("Wind Relative West",  west);
+   printf("Done!\n");
+
+   printf("\n######################################\n");
+   printf("       Step 9 - Select Features\n");
+   printf("######################################\n");
+   /* To finish create an array of strings containing a subset of the features
+      you feel will perform best in the classification. Call the select() 
+      method to filter the data */
+   feats = { "Temperature", "Visibility", "Pressure", "Pressure Trend", "Humidity" };
+   printf("[ ");
+   for (const auto f : feats) printf("\"%s\" ", f.c_str());
+   printf("]\n");
+   this->select(feats);
+   for (const auto r : this->data_)
+      r.print();
+   printf("Done!\n");
 }

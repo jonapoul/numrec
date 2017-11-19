@@ -12,5 +12,5 @@ int main(int argc, char** argv) {
    get_arguments(argc, argv, &filename, &lines_to_pick);
 
    Weather w(filename, lines_to_pick);
-   w.test();
+   //w.test();
 }
