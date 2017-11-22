@@ -173,7 +173,7 @@ class Weather:
         self.target = self.getFeatureData('Weather Type')
 
         # remove non-exportable features
-        for n in ['Station ID', 'Station Name', 'Date', 'Weather Type']:
+        for n in ['Station ID', 'Station Name', 'Date']:#, 'Weather Type']:
             if self._isFIdx(n):
                 self.delete(n)
 
@@ -295,7 +295,7 @@ class Weather:
             0 if success
         """
         self.featureNames = np.array(['Station ID', 'Station Name', 'Elevation', 'Latitude', 'Longitude', 'Date', \
-            'Time since midnight', 'Gust', 'Temperature', 'Visibilty', 'Wind Direction', \
+            'Time since midnight', 'Gust', 'Temperature', 'Visibility', 'Wind Direction', \
             'Wind Speed', 'Pressure', 'Pressure Trend', 'Dew Point', 'Humidity', 'Weather Type'])
         return 0
 

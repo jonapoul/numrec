@@ -21,39 +21,39 @@ weather = Weather(weatherFile, fileSlice)
 
 ## Step 3 - Inspect the Data
 
-print '#'*50
-print '# Step 3: Inspect the Data'
-print '#'*50
-print '\n'
+# print '#'*50
+# print '# Step 3: Inspect the Data'
+# print '#'*50
+# print '\n'
 
-# print data
-print 'Weather Data:'
-print weather.data
+# # print data
+# print 'Weather Data:'
+# print weather.data
 
-# print number of entries
-print 'Number of entries: %s' % (weather.getNrEntries())
+# # print number of entries
+# print 'Number of entries: %s' % (weather.getNrEntries())
 
-# print target names
-print 'Number of targets: %s' % (weather.getNrTargets())
+# # print target names
+# print 'Number of targets: %s' % (weather.getNrTargets())
 
-print 'Target names: %s' % (weather.getTargetNames())
+# print 'Target names: %s' % (weather.getTargetNames())
 
-# print features
-print 'Number of features: %s' % (weather.getNrFeatures())
+# # print features
+# print 'Number of features: %s' % (weather.getNrFeatures())
 
-print 'Feature names: %s' % (weather.getFeatures())
+# print 'Feature names: %s' % (weather.getFeatures())
 
-# uncomment below to print station data
-print 'Number of weather stations: %s' % (weather.getNrStations())
-print 'Stations (ID, Name, Latitude, Longitude)'
-print weather.getStationData('all')
+# # uncomment below to print station data
+# print 'Number of weather stations: %s' % (weather.getNrStations())
+# print 'Stations (ID, Name, Latitude, Longitude)'
+# print weather.getStationData('all')
 
 # Edinburgh and Shap station details
-print 'Station data for EDINBURGH/GOGARBANK: %s' % (weather.getStationData('EDINBURGH/GOGARBANK'))
-print 'Station data for ID 3225: %s' % (weather.getStationData('3225'))
+#print 'Station data for EDINBURGH/GOGARBANK: %s' % (weather.getStationData('EDINBURGH/GOGARBANK'))
+#print 'Station data for ID 3225: %s' % (weather.getStationData('3225'))
 
 # get data from one feature
-print 'Temperature data: %s' % (weather.getFeatureData('Temperature'))
+# print 'Temperature data: %s' % (weather.getFeatureData('Temperature'))
 
 ## Step 4 - Recovering Incomplete Data
 #
@@ -128,43 +128,43 @@ weather.modify('Wind Direction', [compassRose.index(w) for w in weather.getFeatu
 
 # The example below retrieves the temperature and dew point for Edinburgh for 24th October
 
-print '\n'
-print '#'*50
-print '# Step 7: Data Extraction'
-print '#'*50
-print '\n'
+# print '\n'
+# print '#'*50
+# print '# Step 7: Data Extraction'
+# print '#'*50
+# print '\n'
 
-stationId = weather.getStationData('EDINBURGH/GOGARBANK')
-features = ['Time since midnight', 'Temperature', 'Dew Point']
-print 'Temperature and Dew Point measurements for Edinburgh 24th October'
-print '(Time since midnight (min), Temperature, Dew Point)'
-print weather.getObservations('3166', obsDate='2017-10-24', features=features)
+# stationId = weather.getStationData('EDINBURGH/GOGARBANK')
+# features = ['Time since midnight', 'Temperature', 'Dew Point']
+# print 'Temperature and Dew Point measurements for Edinburgh 24th October'
+# print '(Time since midnight (min), Temperature, Dew Point)'
+# print weather.getObservations('3166', obsDate='2017-10-24', features=features)
 
-# This can then be combined with location data
-# Here, the Pressure, Pressure Trend and Wind direction from the nearest weather station
-# 100km NW of Edinburgh for 24th October is shown
-# (uncomment section)
+# # This can then be combined with location data
+# # Here, the Pressure, Pressure Trend and Wind direction from the nearest weather station
+# # 100km NW of Edinburgh for 24th October is shown
+# # (uncomment section)
 
-stationId = weather.getStationData('EDINBURGH/GOGARBANK')
+# stationId = weather.getStationData('EDINBURGH/GOGARBANK')
 
-# get nearest stations 100k NW of Edinburgh station within a 75km threshold
-nearestStations = weather.findStations([stationId[2], stationId[3]], ['100', '-45'], maxThreshold=75)
+# # get nearest stations 100k NW of Edinburgh station within a 75km threshold
+# nearestStations = weather.findStations([stationId[2], stationId[3]], ['100', '-45'], maxThreshold=75)
 
-print '\n'
-print 'Nearest stations 100km NW of EDINBURGH/GOGARBANK'
-for s in nearestStations:
-    print s
+# print '\n'
+# print 'Nearest stations 100km NW of EDINBURGH/GOGARBANK'
+# for s in nearestStations:
+#     print s
 
-# use nearest station (index 0 )
-nearStationId = nearestStations[0]
+# # use nearest station (index 0 )
+# nearStationId = nearestStations[0]
 
-# get observations from nearest station on 24/10
-obsDate='2017-10-24'
-print '\n'
-print 'Using station %s on %s' % (nearStationId[1], obsDate)
-features = ['Time since midnight', 'Pressure', 'Pressure Trend', 'Wind Direction']
-print '(Time since midnight (min), Pressure, Pressure Trend, Wind Direction)'
-print weather.getObservations(nearStationId[0], obsDate=obsDate, features=features)
+# # get observations from nearest station on 24/10
+# obsDate='2017-10-24'
+# print '\n'
+# print 'Using station %s on %s' % (nearStationId[1], obsDate)
+# features = ['Time since midnight', 'Pressure', 'Pressure Trend', 'Wind Direction']
+# print '(Time since midnight (min), Pressure, Pressure Trend, Wind Direction)'
+# print weather.getObservations(nearStationId[0], obsDate=obsDate, features=features)
 
 ## Step 8 - Add new features
 
@@ -189,8 +189,8 @@ print 'Wind relative values appended\n'
 # To finish create an array of strings containing a subset of the features
 # you feel will perform best in the classification. Call the select() method to filter the data
 
-features = ['Temperature', 'Visibilty', 'Pressure', 'Pressure Trend', 'Humidity']
-weather.select(features)
+features = ['Temperature', 'Visibility', 'Pressure', 'Pressure Trend', 'Humidity']
+#weather.select(features)
 print 'Selected features:'
 print features
 
@@ -204,5 +204,6 @@ print features
 # as features for classification and are automatically stripped. The `export()` method
 # will also strip out incomplete data before exporting to file.
 
-weather.export('data/mldata.p')
-print '\nData exported to data/mldata.p'
+filename = 'data/weather.p'
+weather.export(filename)
+print '\nData exported to %s' % filename
