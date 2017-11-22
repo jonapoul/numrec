@@ -20,6 +20,7 @@ FFT      = -lfftw3
 # machine learning
 MAC_CPP := $(wildcard machine/*.cpp)
 MAC_OBJ := $(addprefix obj/,$(notdir $(MAC_CPP:.cpp=.o)))
+MLPACK   = -I/usr/include/libxml2/ -lxml2 -lmlpack -larmadillo
 
 default: checkpoint1 checkpoint2 checkpoint3 fft machine
 
@@ -32,7 +33,7 @@ checkpoint3: $(CP3_OBJ) $(OBJ)/global.o $(MINUIT_OBJ) | $(BIN)
 fft: $(FFT_OBJ) $(OBJ)/global.o | $(BIN)
 	$(CC) $(LDFLAGS) -o $(BIN)/$@ $^ $(PLOT) $(FFT)
 machine: $(MAC_OBJ) $(OBJ)/global.o | $(BIN)
-	$(CC) $(LDFLAGS) -o $(BIN)/$@ $^ $(PLOT)
+	$(CC) $(LDFLAGS) -o $(BIN)/$@ $^ $(MLPACK) 
 
 $(OBJ)/%.o: cp2/%.cpp $(OBJ)/global.o | $(OBJ)
 	$(CC) $(CCFLAGS) -o $@ $< $(PLOT)
@@ -41,7 +42,7 @@ $(OBJ)/%.o: cp3/%.cpp $(OBJ)/global.o	$(MINUIT_OBJ) | $(OBJ)
 $(OBJ)/%.o: fft/%.cpp $(OBJ)/global.o | $(OBJ)
 	$(CC) $(CCFLAGS) -o $@ $< $(PLOT) $(FFT)
 $(OBJ)/%.o: machine/%.cpp $(OBJ)/global.o | $(OBJ)
-	$(CC) $(CCFLAGS) -o $@ $< $(PLOT)
+	$(CC) $(CCFLAGS) -o $@ $< $(MLPACK) 
 
 $(OBJ)/global.o: global.cpp
 	mkdir -p $(OBJ)

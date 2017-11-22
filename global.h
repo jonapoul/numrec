@@ -6,12 +6,23 @@
 #include <string>
 #include <fftw3.h>
 
-#include "fft/Image.h"
-#include "fft/Row.h"
+#define RED     "\x1b[31m"
+#define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define BLUE    "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN    "\x1b[36m"
+#define RESET   "\x1b[0m"
 
 /*
    MACHINE
 */
+#define STARTING() my_starting(__FUNCTION__);
+#define ENDING() my_ending(__FUNCTION__);
+void my_ending(const char* func);
+void my_starting(const char* func);
+#define EXIT() my_exit(__FILE__,__FUNCTION__,__LINE__);
+void my_exit(const char* file, const char* func, const int line);
 void my_assert(const bool condition, const char* str, const char* file, const char* func, const int line);
 #define ASSERT(statement) my_assert(statement,#statement,__FILE__,__FUNCTION__,__LINE__)
 template<class T> bool is_in_array(const T x, const std::vector<T>& arr) {
@@ -19,7 +30,6 @@ template<class T> bool is_in_array(const T x, const std::vector<T>& arr) {
    return false;
 }
 void print_vector(const std::vector<std::string>& vec);
-void get_arguments(int argc, char** argv, std::string* filename, int* lines);
 template<class T> size_t index_of(const T& elem, const std::vector<T>& arr) {
    for (size_t i = 0; i < arr.size(); i++) {
       if (elem == arr[i]) return i;

@@ -5,7 +5,7 @@
 			"path": "."
 		},
       {
-         //"path": "/usr/include"
+         "path": "/usr/include/mlpack"
       }
 	]
 }

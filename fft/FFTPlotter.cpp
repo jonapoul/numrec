@@ -4,6 +4,7 @@
 namespace plt = matplotlibcpp; 
 
 #include "../global.h"
+#include "Row.h"
 #include "FFTPlotter.h"
 
 void FFTPlotter::plot(const Row& r1,

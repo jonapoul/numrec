@@ -69,6 +69,19 @@ vector<string> Weather::feature_names() const {
    return feature_names_; 
 }
 
+arma::mat Weather::matrix() const {
+   const size_t N_rows = this->num_entries();
+   const size_t N_cols = this->num_features();
+   arma::mat result(N_rows, N_cols);
+
+   for (size_t r = 0; r < N_rows; r++) {
+      for (size_t c = 0; c < N_cols; c++) {
+         result.at(r, c) = stod(this->data_[r][c]);
+      }
+   }
+   return result;
+}
+
 bool Weather::load() {
    std::ifstream filestream(this->filename_);
    ASSERT( filestream.is_open() );
@@ -331,27 +344,6 @@ void Weather::delete_feature(const string& feature) {
    }
 }
 
-/* export object to pickle file */
-void Weather::export_to_file(const string& fname) {
-   /* get rid of invalid records */
-   this->discard();
-   /* target = last column */
-   this->target_ = feature_data("Weather Type");
-   /* remove non-exportable features */
-   const vector<string> nonexportable = { "Station ID", "Station Name", 
-                                          "Date", "Weather Type" };
-   for (auto name : nonexportable) {
-      if (is_in_array(name, feature_names_)) {
-         this->delete_feature(name);
-      }
-   }
-   /*
-      NOW DUMP IT?
-      PICKLE.DUMP IS A WAY OF STORING A NUMPY LIST AND THEN PICK IT UP FROM 
-      ANOTHER PROGRAM, PROBABLY NOT NECESSARY HERE
-   */
-}
-
 vector<DataPoint> Weather::get_observations(const string& id,
                                                 const string& date,
                                                 const string& time,
@@ -433,7 +425,7 @@ void Weather::test() {
    printf("######################################\n");
 
    /* print all entries */
-   //for (const auto r : this->data_) r.print();
+   for (const auto r : this->data_) r.print();
 
    /* print info about initial data records */
    printf("\nNumber of entries  = %zu\n", this->num_entries());
@@ -449,12 +441,11 @@ void Weather::test() {
 
    /* print all station data */
    printf("\nNumber of weather stations = %zu\n", this->num_stations());
-   printf("[ ID, Name, Latitude, Longitude, Distance ]\n");
+   printf("[ ID, Name, Latitude, Longitude ]\n");
    const auto stations = this->station_data("all");
    for (const auto s : stations) 
       s.print();
-   exit(1);
-
+   
    /* grab data about just edinburgh station */
    printf("\nStation data for EDINBURGH/GOGARBANK:\n");
    const auto edinburgh = this->station_data("EDINBURGH/GOGARBANK");
@@ -580,4 +571,50 @@ void Weather::test() {
    for (const auto r : this->data_)
       r.print();
    printf("Done!\n");
+}
+
+void Weather::fix() {
+   /*fix gust measurements to 0 if invalid */
+   auto new_gust = this->feature_data("Gust");
+   for (auto& g : new_gust) { 
+      if (g == "-99999") g = "0"; 
+   }
+   this->modify("Gust", new_gust);
+
+   /* remove any other invalid records */
+   this->discard();
+
+   /* enumerate pressure trends */
+   auto tendency = this->feature_data("Pressure Trend");
+   for (auto& t : tendency) {
+      switch (t[0]) {
+         case 'F': t = "-1"; break;
+         case 'S': t =  "0"; break;
+         case 'R': t =  "1"; break;
+      }
+   }
+   this->modify("Pressure Trend", tendency);
+
+   /* enumerate wind direction */
+   vector<string> wind_dirs{"NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", 
+                            "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
+   auto direction = this->feature_data("Wind Direction");
+   for (auto& d : direction)
+      d = std::to_string( index_of(d, wind_dirs) );
+   this->modify("Wind Direction", direction);
+
+   /* Add wind direction more specifically */
+   const int compass_points = 16;
+   auto north = feature_data("Wind Direction");
+   for (auto& n : north) {
+      const int northerliness = abs(compass_points/2 - stoi(n));
+      n = std::to_string( northerliness % (compass_points/2) );
+   }
+   auto west = feature_data("Wind Direction");
+   for (auto& w : west) {
+      const int westerliness = abs(compass_points/2 - stoi(w) - compass_points/4);
+      w = std::to_string( westerliness % (compass_points/2) );
+   }
+   this->append("Wind Relative North", north);
+   this->append("Wind Relative West",  west);
 }

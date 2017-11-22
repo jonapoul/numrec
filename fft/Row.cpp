@@ -1,5 +1,6 @@
 #include <math.h>
 #include "../global.h"
+#include "Image.h"
 #include "Row.h"
 
 Row::Row() 

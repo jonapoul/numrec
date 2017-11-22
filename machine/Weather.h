@@ -4,6 +4,7 @@
 #include <string>
 #include <math.h>
 #include <vector>
+#include <armadillo>
 
 #include "Date.h"
 #include "Station.h"
@@ -17,6 +18,7 @@ public:
    Weather(const std::string& file,
            const int lines);
    void test();
+   arma::mat matrix() const;
 
    /* getters */
    Date start_date() const;
@@ -34,6 +36,7 @@ public:
    std::vector<Station> station_data(const std::string& station) const;
 
    /* apply various operations on the weather records */
+   void fix();
    void modify(const std::string& feature,
                const std::vector<std::string>& values);
    void append(const std::string& name,
@@ -41,7 +44,6 @@ public:
    void select(std::vector<std::string> selected_features);
    void discard();
    void delete_feature(const std::string& feature);
-   void export_to_file(const std::string& fname); /* probably not needed */
    std::vector<DataPoint> get_observations(const std::string& id="" ,
                                                const std::string& date="",
                                                const std::string& time="",

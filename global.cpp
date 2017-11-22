@@ -6,48 +6,29 @@
 
 #include "global.h"
 
+void my_starting(const char* func) {
+   printf("%sSTARTING %s()%s\n", CYAN, func, RESET);
+}
+
+void my_ending(const char* func) {
+   printf("%sENDING %s()%s\n\n", CYAN, func, RESET);
+}
+
+void my_exit(const char* file,
+             const char* function,
+             const int line) {
+   printf(RED "\n\tEXIT() called!\n" RESET);
+   printf("\tfile     = [ %s ]\n",   file);
+   printf("\tfunction = [ %s() ]\n", function);
+   printf("\tline     = [ %d ]\n\n", line);
+   exit(1);
+}
+
 void print_vector(const std::vector<std::string>& vec) {
    for (size_t i = 0; i < vec.size(); i++) {
       std::cout << i << '/' << vec.size()-1 << ' ' << vec[i] << '\n';
    }
    printf("\n");
-}
-
-void get_arguments(int argc, 
-                   char** argv, 
-        /*output*/ std::string* filename, 
-        /*output*/ int* lines) {
-   if (argc == 1) {
-      printf("\nArguments:\n");
-      printf("\t1: input datastream = integer from 0-2 (default = 2 = basic.txt)\n");
-      printf("\t2: lines to read    = integer >= 0     (default = 0 = all lines)\n");
-      printf("e.g. running \"%s 1 1000\" ", argv[0]);
-      printf("will read advanced.txt, reading the first 1000 records\n\n"); 
-   }
-
-   int first_argument = 2; /* default to basic.txt */
-   if (argc > 1) {
-      ASSERT( isdigit(argv[1][0]) );
-      first_argument = atoi(argv[1]);
-      ASSERT( first_argument >= 0 || first_argument <= 2 );
-   }
-   /* build the filepath and test whether it's valid */
-   switch (first_argument) {
-      case 0: *filename = "machine/data/full.txt";     break;
-      case 1: *filename = "machine/data/advanced.txt"; break;
-      case 2: *filename = "machine/data/basic.txt";    break;
-   }
-   std::ifstream text_file(*filename);
-   ASSERT( text_file.is_open() );
-   text_file.close();
-
-   *lines = 0; /* default to 0 = read every line */
-   if (argc > 2) {
-      ASSERT( isdigit(argv[2][0]) );
-      const int second_argument = atoi(argv[2]);
-      ASSERT( second_argument >= 0 );
-      *lines = second_argument;
-   }
 }
 
 bool is_in_range(double min, 
@@ -87,10 +68,12 @@ void my_assert(const bool condition,
                const char* function, 
                const int line) {
    if (!condition) {
-      printf("\nERROR: Condition [ %s ] evaluated as false\n", bool_string);
+      printf(RED "\nERROR: Condition [ %s ] evaluated as false\n", bool_string);
+      printf(YELLOW);
       printf("\tfile     = [ %s ]\n",   file);
       printf("\tfunction = [ %s() ]\n", function);
       printf("\tline     = [ %d ]\n\n",   line);
+      printf(RESET);
       exit(1);
    }
 }
@@ -106,6 +89,7 @@ void get_arguments(int argc,
         /*output*/ size_t* run_limit,
         /*output*/ bool* print_debug) {
    if (argc == 1) {
+      printf(GREEN);
       printf("\nArguments:\n");
       printf("\t1: image number   = integer from 1-4 (default=1)\n");
       printf("\t2: iteration limt = integer >= 1     (default=20)\n");
@@ -113,6 +97,7 @@ void get_arguments(int argc,
       printf("e.g. running \"%s 2 10 1\" ", argv[0]);
       printf("will read desync2.pgm, run the synchronisation for 10 "); 
       printf("iterations and print debug output\n\n");
+      printf(RESET);
    }
 
    int first_argument = 1; /* default to desync1.pgm */

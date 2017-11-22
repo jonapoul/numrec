@@ -5,12 +5,20 @@
 
 #include "../global.h"
 #include "Weather.h"
+#include "test.h"
 
 int main(int argc, char** argv) {
-   std::string filename;
-   int lines_to_pick;
-   get_arguments(argc, argv, &filename, &lines_to_pick);
-
+   const std::string filename = "machine/data/basic.txt";
+   const int lines_to_pick = 10;
    Weather w(filename, lines_to_pick);
-   //w.test();
+   w.fix();
+   w.delete_feature("Station Name");
+   w.delete_feature("Date");
+
+   const arma::mat data = w.matrix();
+   //data.raw_print("features:");
+   //for (auto f : w.feature_names()) std::cout << '\t' << f << '\n';
+
+   covariance(data);
+   // nearest_neighbours();
 }
