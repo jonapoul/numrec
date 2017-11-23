@@ -7,7 +7,7 @@ weather = Weather(weatherFile, fileSlice)
 
 # zero any null gust measurements
 newG = ['0' if g == '-99999' else g for g in weather.getFeatureData('Gust')]
-weather.modify('Gust', newG)
+#weather.modify('Gust', newG)
 
 # After recovering any data ensure you run the `discard()` method to remove any data with remaining null observations.
 weather.discard()
@@ -27,21 +27,39 @@ weather.modify('Wind Direction', new_WD)
 points = 16
 north = [abs((points/2) - int(w))%(points / 2) for w in weather.getFeatureData('Wind Direction')]
 west = [abs((points/2) - int(w) - (points / 4))%(points / 2) for w in weather.getFeatureData('Wind Direction')]
-weather.append('Wind Relative North', north)
-weather.append('Wind Relative West', west)
+weather.append('Wind North', north)
+weather.append('Wind West', west)
 
 # select features
 weather.delete('Station Name')
 weather.delete('Station ID')
+weather.delete('Elevation')
 weather.delete('Latitude')
 weather.delete('Longitude')
 weather.delete('Date')
+#weather.delete('Time since midnight')
+#weather.delete('Gust')
+#weather.delete('Temperature')
+#weather.delete('Visibility')
 weather.delete('Wind Direction')
+#weather.delete('Wind Speed')
+#weather.delete('Pressure')
+#weather.delete('Pressure Trend')
+#weather.delete('Dew Point')
+#weather.delete('Humidity')
+weather.delete('Wind North')
+weather.delete('Wind West')
 
-allfeats = ['Station ID', 'Station Name', 'Elevation', 'Latitude', 'Longitude', 'Date', 'Time since midnight', 'Gust', 'Temperature', 'Visibility', 'Wind Direction', 'Wind Speed', 'Pressure', 'Pressure Trend', 'Dew Point', 'Humidity', 'Weather Type']
+allfeats = ['Station ID',   'Station Name',   'Elevation',           'Latitude', 
+            'Longitude',    'Date',           'Time since midnight', 'Gust', 
+            'Temperature',  'Visibility',     'Wind Direction',      'Wind Speed', 
+            'Pressure',     'Pressure Trend', 'Dew Point',           'Humidity', 
+            'Weather Type', 'Wind North',     'Wind West']
 
-features = ['Elevation', 'Temperature', 'Visibility', 'Pressure', 'Pressure Trend', 'Humidity']
-weather.select(features)
+features = ['Elevation',      'Temperature', 'Visibility', 'Pressure', 
+            'Pressure Trend', 'Humidity',    'Wind Speed', 'Wind North', 
+            'Wind West']
+#weather.select(features)
 print 'Selected features:'
 print weather.featureNames
 

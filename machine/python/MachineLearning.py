@@ -1,4 +1,4 @@
-## Step 1 - Import and Data loading
+# no idea what most of this is for but it must do something
 import sys
 import time
 import pickle
@@ -6,30 +6,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import make_moons, make_circles, make_classification
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from sklearn import svm, datasets
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.decomposition import RandomizedPCA
-from sklearn.decomposition import PCA
+from sklearn.decomposition import RandomizedPCA, PCA
 
-# Load the weather data you created by FeatureExtraction.py
 weather = pickle.load(open('data/weather.p'))
-
-# grab the predicted weather types then delete them from the data structure
+# grab the classifcations array then separate it from the weather data
 WT = weather.getFeatureData('Weather Type')
 weather.delete('Weather Type')
-print weather.data
-
-# Confirm that the data has loaded correctly by inspecting the data attributes in the `weather` object.
 N_data       = weather.getNrEntries()
 N_targets    = weather.getNrTargets()
 N_features   = weather.getNrFeatures()
@@ -43,60 +38,8 @@ print 'Number of stations: %s' % N_stations
 print 'Number of features: %s' % N_features
 print 'Target names:       %s' % target_names
 print 'Features:           %s' % features
-El = weather.getFeatureData('Elevation')
-La = weather.getFeatureData('Latitude')
-Lo = weather.getFeatureData('Longitude')
-t  = weather.getFeatureData('Time since midnight')
-G  = weather.getFeatureData('Gust')
-T  = weather.getFeatureData('Temperature')
-V  = weather.getFeatureData('Visibility')
-WD = weather.getFeatureData('Wind Direction')
-WS = weather.getFeatureData('Wind Speed')
-P  = weather.getFeatureData('Pressure')
-PT = weather.getFeatureData('Pressure Trend')
-DP = weather.getFeatureData('Dew Point')
-H  = weather.getFeatureData('Humidity')
-WN = weather.getFeatureData('Wind Relative North')
-WW = weather.getFeatureData('Wind Relative West')
-print 'Grabbed feature data arrays\n'
-
-## Step 2 - Define the training and testing sample
-# Divide the weather data into a suitable training and testing sample.
-# Start with a 50/50 split but make this easily adaptable for futher fitting evaluation.
-# *Examples*: sklearn.model_selection.train_test_split()
-#             http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
-data = np.zeros((N_data, 2))
-data[:, 0] = T
-data[:, 1] = V
-X_train, X_test, y_train, y_test = train_test_split(data, WT, test_size=.5)
-
-## Step 3 - Define the classification method
-# This can be any of the estimators provided by Sklearn. I suggest you start with a *white box* 
-# method to better understand the process before trying something more advanced.
-clf = DecisionTreeClassifier()
-
-## Step 4 - Fit the training data
-# Run the `fit` method of your chosen estimator using the training data (and corresponding targets) as input
-clf.fit(X_train, y_train)
-
-## Step 5 - Define the expected and predicted datasets
-# Define `expected` as your *test* target values (i.e. **not** your *training* target values)
-# and run the `predict` method on your chosen estimator using your *test data*
-score = clf.score(X_test, y_test)
-print score
-
-## Step 6 - Prediction Evaluation
-
-# Use the `sklearn.metrics` module to compare the results using the expected and predicted datasets.
-
-# Examples:
-# - [Sklearn Model Evaluation](http://scikit-learn.org/stable/modules/model_evaluation.html#)
-# - [Handwritten Digits example](http://scikit-learn.org/stable/auto_examples/classification/plot_digits_classification.html#sphx-glr-auto-examples-classification-plot-digits-classification-py)
-
-# RUN PREDICTION EVALUATION METHODS HERE
-
-sys.exit()
-
+#print weather.data
+#print WT
 
 start = time.time()
 h = .02  # step size in the mesh
@@ -120,7 +63,7 @@ classifiers = [KNeighborsClassifier(3),
                AdaBoostClassifier(),
                GaussianNB(),
                QuadraticDiscriminantAnalysis()]
-# X = (x,y) coords of datapoint, y = category of datapoint
+# X = (x,y) coords of datapoint, y = classification/category of datapoint
 X, y = make_classification(n_samples=100, 
                            n_features=2, 
                            n_redundant=0, 
@@ -136,8 +79,8 @@ datasets = [make_moons(noise=0.3, random_state=0),
             make_circles(noise=0.2, factor=0.5, random_state=1),
             linearly_separable]
 #datasets = [linearly_separable]
-
-figure = plt.figure(figsize=(27, 9))
+fig_size = (len(classifiers)*len(datasets), len(classifiers))
+figure = plt.figure(figsize=fig_size)
 plt.rcParams.update({'font.size': 8})
 i = 1
 # iterate over datasets
@@ -198,3 +141,47 @@ for ds_cnt, ds in enumerate(datasets):
 print '{0:.2f} seconds'.format(time.time()-start)
 plt.tight_layout()
 plt.show()
+
+
+# classifiers = [#KNeighborsClassifier(3), # t=0.05s, score=0.736
+#                #SVC(kernel="linear", C=0.025), # t=78.4s, score=who cares
+#                #SVC(gamma=2, C=1), # t=0.43s, score=0.775
+#                #GaussianProcessClassifier(1.0 * RBF(1.0)), # t=140.02s, score=who cares
+#                DecisionTreeClassifier(max_depth=5), # t=0.06s, score=0.787
+#                RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1), # t=0.06s, score=0.787
+#                #MLPClassifier(alpha=1), # t=0.12s, score=0.675
+#                #AdaBoostClassifier(), # t=0.35s, score=0.725
+#                #GaussianNB(), # t=0.01s, score=0.722
+#                QuadraticDiscriminantAnalysis()] # t=0.08s, score=0.731
+
+# for i in range(len(classifiers)):
+#    average = 0
+#    iterations = 100
+#    for j in range(iterations):
+#       start = time.time()
+#       #print 'splitting...'
+#       testsize = 0.8
+#       data_train, data_test, result_train, result_test = train_test_split(weather.data, WT, test_size=testsize)
+#       expected = result_test
+#       clf = classifiers[i]
+#       #print 'fitting {0:.0f} datapoints...'.format((1-testsize)*N_data)
+#       clf.fit(data_train, result_train)
+#       #print 'predicting {0:.0f} datapoints...'.format(testsize*N_data)
+#       predicted = clf.predict(data_test)
+#       #print 'scoring...'
+#       score = clf.score(data_test, result_test)
+#       #print 'score = {0}'.format(score)
+#       #print("Classification report for classifier {0}:\n{1}".format(i, classification_report(expected, predicted)))
+#       #print("Confusion matrix:\n%s" % confusion_matrix(expected, predicted))
+#       #print '{0:.2f} seconds'.format(time.time()-start)
+#       #print '\n'
+#       average += score/iterations
+#    print average
+
+# ## Step 6 - Prediction Evaluation
+# # Use the `sklearn.metrics` module to compare the results using the expected and predicted datasets.
+# # Examples:
+# # - [Sklearn Model Evaluation](http://scikit-learn.org/stable/modules/model_evaluation.html#)
+# # - [Handwritten Digits example] (http://scikit-learn.org/stable/auto_examples/classification/plot_digits_classification.html#sphx-glr-auto-examples-classification-plot-digits-classification-py)
+
+# sys.exit()
