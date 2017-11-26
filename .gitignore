@@ -7,3 +7,6 @@ cp3/fig
 fft/submitted
 notes
 *.p
+*.pyc
+*.dot
+machine/python/pics

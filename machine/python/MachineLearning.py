@@ -5,14 +5,16 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
-from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split, cross_val_score
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.datasets import make_moons, make_circles, make_classification
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from sklearn import svm, datasets
+from sklearn.svm import SVC, LinearSVC
+from sklearn import svm, datasets, tree
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.gaussian_process import GaussianProcessClassifier
 from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
@@ -21,9 +23,12 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.decomposition import RandomizedPCA, PCA
 
+start = time.time()
+np.set_printoptions(threshold=np.nan)
 weather = pickle.load(open('data/weather.p'))
+
 # grab the classifcations array then separate it from the weather data
-WT = weather.getFeatureData('Weather Type')
+classifications = weather.getFeatureData('Weather Type')
 weather.delete('Weather Type')
 N_data       = weather.getNrEntries()
 N_targets    = weather.getNrTargets()
@@ -36,152 +41,144 @@ print 'Number of entries:  %s' % N_data
 print 'Number of targets:  %s' % N_targets
 print 'Number of stations: %s' % N_stations
 print 'Number of features: %s' % N_features
-print 'Target names:       %s' % target_names
-print 'Features:           %s' % features
-#print weather.data
-#print WT
+print 'Target names and frequencies:'
+index = len(weather.data[0])-1
+count = np.zeros(N_targets)
+for c in classifications:
+   count[int(c)] += 1
+print 'Weather Types and frequencies:'
+for i in range(len(count)):
+   print '{0:2d} = {1:13s} = {2:5.0f}'.format(i, target_names[i], count[i])
 
-start = time.time()
-h = .02  # step size in the mesh
-names = ["Nearest Neighbors", 
-         "Linear SVM", 
-         "RBF SVM", 
-         "Gaussian Process", 
-         "Decision Tree", 
-         "Random Forest", 
-         "Neural Net", 
-         "AdaBoost", 
-         "Naive Bayes", 
-         "QDA"]
-classifiers = [KNeighborsClassifier(3),
-               SVC(kernel="linear", C=0.025),
-               SVC(gamma=2, C=1),
-               GaussianProcessClassifier(1.0 * RBF(1.0)),
-               DecisionTreeClassifier(max_depth=5),
-               RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1),
-               MLPClassifier(alpha=1),
-               AdaBoostClassifier(),
-               GaussianNB(),
-               QuadraticDiscriminantAnalysis()]
-# X = (x,y) coords of datapoint, y = classification/category of datapoint
-X, y = make_classification(n_samples=100, 
-                           n_features=2, 
-                           n_redundant=0, 
-                           n_informative=2, 
-                           random_state=1, 
-                           n_classes=2,
-                           n_clusters_per_class=1)
-rng = np.random.RandomState(2)
-X += 2 * rng.uniform(size=X.shape)
+print 'Features:         \n%s' % features
 
-linearly_separable = (X, y)
-datasets = [make_moons(noise=0.3, random_state=0),
-            make_circles(noise=0.2, factor=0.5, random_state=1),
-            linearly_separable]
-#datasets = [linearly_separable]
-fig_size = (len(classifiers)*len(datasets), len(classifiers))
-figure = plt.figure(figsize=fig_size)
-plt.rcParams.update({'font.size': 8})
-i = 1
-# iterate over datasets
-for ds_cnt, ds in enumerate(datasets):
-   # preprocess dataset, split into training and test part
-   X, y = ds
-   X = StandardScaler().fit_transform(X)
-   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.4, random_state=42)
+allfeatures = [ # just for reference
+   'Station ID',
+   'Station Name',
+   'Elevation', 
+   'Latitude', 
+   'Longitude',
+   'Date',
+   'Day Number',
+   'Time since midnight',
+   'Gust',
+   'Temperature', 
+   'Visibility', 
+   'Wind Direction',
+   'Wind Speed',
+   'Pressure', 
+   'Pressure Trend', 
+   'Dew Point',
+   'Humidity',
+   'Weather Type', 
+   'Wind North', 
+   'Wind West',
+   'Nearest Station Weather Type'
+]
+names = [
+   #"Nearest Neighbors",
+   #"Linear SVC",
+   #"RBF SVM",
+   #"Gaussian Process",
+   #"Decision Tree",
+   #"Random Forest",
+   #"Neural Net",
+   #"AdaBoost",
+   #"Naive Bayes",
+   #"QDA",
+   'activation=identity',
+   'activation=logistic',
+   'activation=tanh',
+   'activation=relu',
+]
+classifiers = [
+   #KNeighborsClassifier(n_neighbors=5),
+   #SVC(kernel="linear", C=0.025),
+   #SVC(gamma=2, C=1),
+   #GaussianProcessClassifier(1.0 * RBF(1.0)),
+   #DecisionTreeClassifier(max_depth=10),
+   #RandomForestClassifier(n_estimators=50, n_jobs=-1),
+   #MLPClassifier(alpha=1),
+   #AdaBoostClassifier(),
+   #GaussianNB(),
+   #QuadraticDiscriminantAnalysis(),
+   MLPClassifier(activation='identity'),
+   MLPClassifier(activation='logistic'),
+   MLPClassifier(activation='tanh'),
+   MLPClassifier(activation='relu'),
+]
+# DTC:  max_depth=10
+# RFC:  n_estimators=50, n_jobs=-1
+# KNC:  n_jobs=-1, n_neighbors=1, p=1
+# MLPC: 
 
-   x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-   y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-   xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+      ## TRY RadiusNeighborsClassifier YOU DAFT SHIT
+      ## and look through http://scikit-learn.org/stable/modules/classes.html#module-sklearn.neighbors
 
-   # just plot the dataset first
-   cm = plt.cm.RdBu
-   cm_bright = ListedColormap(['#FF0000', '#0000FF'])
-   ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
-   if ds_cnt == 0:
-      ax.set_title("Input data")
-   # Plot the training points
-   ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k')
-   # and testing points
-   ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap=cm_bright, alpha=0.6, edgecolors='k')
-   ax.set_xlim(xx.min(), xx.max())
-   ax.set_ylim(yy.min(), yy.max())
-   ax.set_xticks(())
-   ax.set_yticks(())
-   i += 1
 
-   # iterate over classifiers
-   for name, clf in zip(names, classifiers):
-      ax = plt.subplot(len(datasets), len(classifiers) + 1, i)
-      clf.fit(X_train, y_train)
-      score = clf.score(X_test, y_test)
-      # Plot the decision boundary. For that, we will assign a color to each point in the mesh [x_min, x_max]x[y_min, y_max].
-      if hasattr(clf, "decision_function"):
-         Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
-      else:
-         Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
+print 'Chosen Classifiers:'
+print names
 
-      # Put the result into a color plot
-      Z = Z.reshape(xx.shape)
-      ax.contourf(xx, yy, Z, cmap=cm, alpha=.8)
+nn_all = []
+nn_02  = []
+N = 40
+for j in range(N):
+   iter_start = time.time()
+   print 'iteration {0:2d}/{1}:       '.format(j, N),
+   for i in range(len(classifiers)):
+      if j == 0:
+         nn_all.append([])
+         nn_02.append([])
 
-      # Plot the training/testing points
-      ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap=cm_bright, edgecolors='k')
-      ax.scatter(X_test[:, 0],  X_test[:, 1],  c=y_test,  cmap=cm_bright, edgecolors='k', alpha=0.6)
+      t = time.time()   
+      data_train,data_test,class_train,class_test = train_test_split(weather.data, classifications, test_size=0.5)
+      actual = class_test
+      clf = classifiers[i]
+      clf.fit(data_train, class_train)
+      # if names[i] == "Decision Tree":
+      #    tree.export_graphviz(clf, out_file='tree.dot')  # dot -Tpng tree.dot -o tree.png
 
-      ax.set_xlim(xx.min(), xx.max())
-      ax.set_ylim(yy.min(), yy.max())
-      ax.set_xticks(())
-      ax.set_yticks(())
-      if ds_cnt == 0:
-         ax.set_title(name)
-      ax.text(xx.max() - .3, yy.min() + .3, ('%.2f' % score).lstrip('0'), size=15, horizontalalignment='right')
-      i += 1
+      predicted = clf.predict(data_test)
+      data_test  = data_test[class_test != 1]  # remove all test elements for class=1
+      class_test = class_test[class_test != 1]
+      score = clf.score(data_test, class_test)
+      # print '{0}:\n{1}'.format(names[i], confusion_matrix(actual, predicted))
+      score_all = accuracy_score(actual,     predicted)
+      score_02  = accuracy_score(class_test, clf.predict(data_test))
+      # print 'accuracy over all      = {0}'.format(score_all)
+      # print 'accuracy over type 0/2 = {0}'.format(score_02)
+      nn_all[i].append(score_all)
+      nn_02[i].append(score_02)
+      #print '{0}:\n{1}'.format(names[i], classification_report(actual, predicted))
+      print '{0}={1:.2f}s '.format(i, time.time()-t),
+   print '       total={0:.3f} secs'.format(time.time()-iter_start)
 
-print '{0:.2f} seconds'.format(time.time()-start)
-plt.tight_layout()
+print '\nall:'
+print 'mean   = {0}'.format(np.mean(nn_all))
+print 'var    = {0}'.format(np.var(nn_all))
+print 'min    = {0}'.format(np.min(nn_all))
+print 'max    = {0}'.format(np.max(nn_all))
+print 'median = {0}'.format(np.median(nn_all))
+
+print '\n0/2:'
+print 'mean   = {0}'.format(np.mean(nn_02))
+print 'var    = {0}'.format(np.var(nn_02))
+print 'min    = {0}'.format(np.min(nn_02))
+print 'max    = {0}'.format(np.max(nn_02))
+print 'median = {0}'.format(np.median(nn_02))
+
+print '\ntime = {0}'.format(time.time()-start)
+
+plt.figure()
+plt.boxplot(nn_all, 0, '')
+plt.title("Accuracy score over all weather types")
+plt.ylim(0, 1)
+plt.xticks([i for i in range(len(names)+1)], [" "] + names, rotation=25)
 plt.show()
 
-
-# classifiers = [#KNeighborsClassifier(3), # t=0.05s, score=0.736
-#                #SVC(kernel="linear", C=0.025), # t=78.4s, score=who cares
-#                #SVC(gamma=2, C=1), # t=0.43s, score=0.775
-#                #GaussianProcessClassifier(1.0 * RBF(1.0)), # t=140.02s, score=who cares
-#                DecisionTreeClassifier(max_depth=5), # t=0.06s, score=0.787
-#                RandomForestClassifier(max_depth=5, n_estimators=10, max_features=1), # t=0.06s, score=0.787
-#                #MLPClassifier(alpha=1), # t=0.12s, score=0.675
-#                #AdaBoostClassifier(), # t=0.35s, score=0.725
-#                #GaussianNB(), # t=0.01s, score=0.722
-#                QuadraticDiscriminantAnalysis()] # t=0.08s, score=0.731
-
-# for i in range(len(classifiers)):
-#    average = 0
-#    iterations = 100
-#    for j in range(iterations):
-#       start = time.time()
-#       #print 'splitting...'
-#       testsize = 0.8
-#       data_train, data_test, result_train, result_test = train_test_split(weather.data, WT, test_size=testsize)
-#       expected = result_test
-#       clf = classifiers[i]
-#       #print 'fitting {0:.0f} datapoints...'.format((1-testsize)*N_data)
-#       clf.fit(data_train, result_train)
-#       #print 'predicting {0:.0f} datapoints...'.format(testsize*N_data)
-#       predicted = clf.predict(data_test)
-#       #print 'scoring...'
-#       score = clf.score(data_test, result_test)
-#       #print 'score = {0}'.format(score)
-#       #print("Classification report for classifier {0}:\n{1}".format(i, classification_report(expected, predicted)))
-#       #print("Confusion matrix:\n%s" % confusion_matrix(expected, predicted))
-#       #print '{0:.2f} seconds'.format(time.time()-start)
-#       #print '\n'
-#       average += score/iterations
-#    print average
-
-# ## Step 6 - Prediction Evaluation
-# # Use the `sklearn.metrics` module to compare the results using the expected and predicted datasets.
-# # Examples:
-# # - [Sklearn Model Evaluation](http://scikit-learn.org/stable/modules/model_evaluation.html#)
-# # - [Handwritten Digits example] (http://scikit-learn.org/stable/auto_examples/classification/plot_digits_classification.html#sphx-glr-auto-examples-classification-plot-digits-classification-py)
-
-# sys.exit()
+plt.figure()
+plt.boxplot(nn_02, 0, '')
+plt.title("Accuracy score for weather types 0 and 2")
+plt.ylim(0, 1)
+plt.xticks([i for i in range(len(names)+1)], [" "] + names, rotation=25)
+plt.show()
