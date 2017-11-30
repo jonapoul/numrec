@@ -1,0 +1,3 @@
+#ifndef NO_MINUIT_INSTALLED
+#define NO_MINUIT_INSTALLED
+#endif

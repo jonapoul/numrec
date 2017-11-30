@@ -56,58 +56,41 @@ print 'Features:         \n%s' % features
 allfeatures = [ # just for reference
    'Station ID',
    'Station Name',
-   'Elevation', 
-   'Latitude', 
+   'Elevation',
+   'Latitude',
    'Longitude',
    'Date',
    'Day Number',
    'Time since midnight',
    'Gust',
-   'Temperature', 
-   'Visibility', 
+   'Temperature',
+   'Visibility',
    'Wind Direction',
    'Wind Speed',
-   'Pressure', 
-   'Pressure Trend', 
+   'Pressure',
+   'Pressure Trend',
    'Dew Point',
    'Humidity',
-   'Weather Type', 
-   'Wind North', 
+   'Weather Type',
+   'Wind North',
    'Wind West',
    'Nearest Station Weather Type'
 ]
 names = [
-   # 'Nearest Neighbours',
-   # 'Decision Tree',
-   # 'Random Forest',
-   # 'AdaRFC',
-   # 'Neural Net',
-   # 'Ridge Classifier',
-   '1',
-   '2',
-   '5',
-   '10',
-   '20',
-   '50',
-   '100',
+   'Nearest\nNeighbours',
+   'Decision\nTree',
+   'Random\nForest',
+   'AdaBoost\nRFC',
+   'Neural\nNet',
+   'Ridge\nClassifier',
 ]
 classifiers = [
-   # KNeighborsClassifier(n_jobs=-1, n_neighbors=1, p=1),
-   # DecisionTreeClassifier(max_depth=10),
-   # RandomForestClassifier(n_estimators=50, n_jobs=-1),
-   # AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=50, n_jobs=-1), n_estimators=1),
-   # MLPClassifier(activation='logistic', learning_rate='invscaling'),
-   # RidgeClassifier(fit_intercept=True),
-
    KNeighborsClassifier(n_jobs=-1, n_neighbors=1, p=1),
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=2, p=1),
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=5, p=1),
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=10, p=1),
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=20, p=1),
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=50, p=1),
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=100, p=1),
-   #KNeighborsClassifier(n_jobs=-1, n_neighbors=100, p=1, weights='uniform'),
-   #KNeighborsClassifier(n_jobs=-1, n_neighbors=100, p=1, weights='distance'),
+   DecisionTreeClassifier(max_depth=10),
+   RandomForestClassifier(n_estimators=50, n_jobs=-1),
+   AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=50, n_jobs=-1), n_estimators=1),
+   MLPClassifier(activation='logistic', learning_rate='invscaling'),
+   RidgeClassifier(fit_intercept=True),
 ]
 
 print 'Chosen Classifiers:'
@@ -115,7 +98,7 @@ print names
 
 nn_all = []
 nn_02  = []
-N = 30
+N = 20
 for j in range(N):
    iter_start = time.time()
    print 'iteration {0:2d}/{1}:       '.format(j, N),
@@ -124,7 +107,7 @@ for j in range(N):
          nn_all.append([])
          nn_02.append([])
 
-      t = time.time()   
+      t = time.time()
       data_train,data_test,class_train,class_test = train_test_split(weather.data, classifications, test_size=0.5)
       actual = class_test
       clf = classifiers[i]

@@ -33,40 +33,40 @@ Weather::Weather(const string& file,
    this->observation_start_ = Date(2017, 10, 23);
 }
 
-Date Weather::start_date() const { 
-   return observation_start_; 
+Date Weather::start_date() const {
+   return observation_start_;
 }
 
-int Weather::datastream() const { 
-   return datastream_; 
+int Weather::datastream() const {
+   return datastream_;
 }
 
-size_t Weather::num_entries() const { 
-   return data_.size(); 
+size_t Weather::num_entries() const {
+   return data_.size();
 }
 
-size_t Weather::num_targets() const { 
+size_t Weather::num_targets() const {
    return target_names_.size();
 }
 
-size_t Weather::num_features() const { 
-   return feature_names_.size(); 
+size_t Weather::num_features() const {
+   return feature_names_.size();
 }
 
-size_t Weather::num_stations() const { 
-   return station_data_.size(); 
+size_t Weather::num_stations() const {
+   return station_data_.size();
 }
 
-string Weather::filename() const { 
-   return filename_; 
+string Weather::filename() const {
+   return filename_;
 }
 
-vector<string> Weather::target_names() const { 
-   return target_names_; 
+vector<string> Weather::target_names() const {
+   return target_names_;
 }
 
-vector<string> Weather::feature_names() const { 
-   return feature_names_; 
+vector<string> Weather::feature_names() const {
+   return feature_names_;
 }
 
 arma::mat Weather::matrix() const {
@@ -89,14 +89,14 @@ bool Weather::load() {
    /* count how many DataPoints we're reading in to allocate space */
    size_t line_count = 0;
    string line;
-   while (getline(filestream, line)) 
+   while (getline(filestream, line))
       line_count++;
    filestream.clear();
    filestream.seekg(0, std::ios::beg);
    line_count -= 1; // account for the first line (FULL/BASIC/ADVANCED)
-   
+
    /* if we've specified how many lines to read, use that instead */
-   if (this->lines_to_pick_ > 0) 
+   if (this->lines_to_pick_ > 0)
       line_count = this->lines_to_pick_;
 
    this->data_ = vector<DataPoint>(line_count);
@@ -128,23 +128,23 @@ size_t Weather::feature_index(const string str) const {
 void Weather::set_target_names() {
    ASSERT( datastream_ == 0 || datastream_ == 1 || datastream_ == 2 );
    switch (this->datastream_) {
-   case 0: 
-      target_names_ = { "Clear Night",              "Sunny Day", 
-                        "Partly cloudy (night)",    "Partly cloudy (day)", 
+   case 0:
+      target_names_ = { "Clear Night",              "Sunny Day",
+                        "Partly cloudy (night)",    "Partly cloudy (day)",
                         "Not used",                 "Mist",
-                        "Fog",                      "Cloudy", 
-                        "Overcast",                 "Light rain shower (night)", 
-                        "Light rain shower (day)",  "Drizzle", 
-                        "Light rain",               "Heavy rain shower (night)", 
-                        "Heavy rain shower (day)",  "Heavy rain", 
-                        "Sleet shower (night)",     "Sleet shower (day)", 
-                        "Sleet",                    "Hail shower (night)", 
-                        "Hail shower (day)",        "Hail", 
-                        "Light snow shower (night)","Light snow shower (day)", 
-                        "Light snow",               "Heavy snow shower (night)", 
-                        "Heavy snow shower (day)",  "Heavy snow", 
-                        "Thunder shower",           "Thunder shower (night)", 
-                        "Thunder" }; 
+                        "Fog",                      "Cloudy",
+                        "Overcast",                 "Light rain shower (night)",
+                        "Light rain shower (day)",  "Drizzle",
+                        "Light rain",               "Heavy rain shower (night)",
+                        "Heavy rain shower (day)",  "Heavy rain",
+                        "Sleet shower (night)",     "Sleet shower (day)",
+                        "Sleet",                    "Hail shower (night)",
+                        "Hail shower (day)",        "Hail",
+                        "Light snow shower (night)","Light snow shower (day)",
+                        "Light snow",               "Heavy snow shower (night)",
+                        "Heavy snow shower (day)",  "Heavy snow",
+                        "Thunder shower",           "Thunder shower (night)",
+                        "Thunder" };
       return;
    case 1:
       target_names_ = { "Clear",  "Partly Cloudy", "Mist",    "Fog",
@@ -168,10 +168,10 @@ void Weather::set_station_data() {
 
    for (size_t i = 0; i < num_entries(); i++) {
       if ( !is_in_array(data_[i][id_index], found_ids) ) {
-         found_ids.push_back(data_[i][id_index]); 
-         const Coords coords(data_[i][lat_index], 
+         found_ids.push_back(data_[i][id_index]);
+         const Coords coords(data_[i][lat_index],
                              data_[i][lon_index]);
-         const Station s(data_[i][id_index], 
+         const Station s(data_[i][id_index],
                          data_[i][name_index],
                          coords);
          this->station_data_.push_back( s );
@@ -180,15 +180,15 @@ void Weather::set_station_data() {
 }
 
 void Weather::set_feature_names() {
-   this->feature_names_ = { "Station ID", "Station Name", "Elevation", 
-                            "Latitude", "Longitude", "Date", 
-                            "Time since midnight", "Gust", "Temperature", 
-                            "Visibility", "Wind Direction", "Wind Speed", 
-                            "Pressure", "Pressure Trend", "Dew Point", 
+   this->feature_names_ = { "Station ID", "Station Name", "Elevation",
+                            "Latitude", "Longitude", "Date",
+                            "Time since midnight", "Gust", "Temperature",
+                            "Visibility", "Wind Direction", "Wind Speed",
+                            "Pressure", "Pressure Trend", "Dew Point",
                             "Humidity", "Weather Type" };
 }
 
-/* distance in km between two points on spherical surface, from 
+/* distance in km between two points on spherical surface, from
    https://www.movable-type.co.uk/scripts/latlong.html */
 double Weather::get_distance(const Coords& c1,
                              const Coords& c2) {
@@ -212,9 +212,9 @@ Coords Weather::get_new_coords(const Coords& c,
    const double oldlon = rad(c.longitude);
    const double magnitude = distance / R;
    const double direction = rad(360 - bearing);
-   
+
    /* http://www.edwilliams.org/avform.htm#LL */
-   double lat = asin( sin(oldlat)*cos(magnitude) + 
+   double lat = asin( sin(oldlat)*cos(magnitude) +
                       cos(oldlat)*sin(magnitude)*cos(direction));
    double lon = oldlon - asin(sin(direction)*sin(magnitude)/cos(lat)) + M_PI;
    while (lon > 2*M_PI) lon -= 2*M_PI;
@@ -224,6 +224,7 @@ Coords Weather::get_new_coords(const Coords& c,
 
 /* time between observation_start and wr.time in decimal hours */
 double Weather::relative_time(const DataPoint& wr) const {
+#if __GNUC__ >= 5
    struct std::tm tm_wr;
    const string date = wr[ feature_index("Date") ];
    std::istringstream iss_wr(date);
@@ -235,8 +236,12 @@ double Weather::relative_time(const DataPoint& wr) const {
    std::istringstream iss_start(this->observation_start_.str());
    iss_start >> std::get_time(&tm_start,"%Y/%m/%d");
    std::time_t t_start = mktime(&tm_start);
-
    return (t_wr - t_start) / 3600.0;
+#else
+  printf("GCC version needs to be over 5.0 to use std::get_time\n");
+  EXIT();
+  return 0.0;
+#endif
 }
 
 /* gets all entries for the given feature name
@@ -269,7 +274,7 @@ vector<Station> Weather::station_data(const string& station) const {
 }
 
 /* change the values a chosen feature in every record */
-void Weather::modify(const string& feature, 
+void Weather::modify(const string& feature,
                      const vector<string>& values) {
    ASSERT( num_entries() == values.size() );
    const size_t index = feature_index(feature);
@@ -352,7 +357,7 @@ vector<DataPoint> Weather::get_observations(const string& id,
    const size_t id_index   = feature_index("Station ID");
    const size_t date_index = feature_index("Date");
    const size_t time_index = feature_index("Time since midnight");
-   if (id.length()   > 0) id_valid   = true; 
+   if (id.length()   > 0) id_valid   = true;
    if (date.length() > 0) date_valid = true;
    if (time.length() > 0) time_valid = true;
 
@@ -360,7 +365,7 @@ vector<DataPoint> Weather::get_observations(const string& id,
    vector<DataPoint> stats = this->data_;
    /* erase all records with the wrong station id, wrong date or wrong time */
    for (int i = (int)stats.size()-1; i >= 0; i--) {
-      if (   (id_valid   && stats[i][id_index]   != id) 
+      if (   (id_valid   && stats[i][id_index]   != id)
           || (date_valid && stats[i][date_index] != date)
           || (time_valid && stats[i][time_index] != time) ) {
          stats.erase(stats.begin() + i);
@@ -382,7 +387,7 @@ vector<DataPoint> Weather::get_observations(const string& id,
             temp.append(s[i]);
          s = temp;
       }
-   } 
+   }
    return stats;
 }
 
@@ -391,7 +396,7 @@ vector<Station> Weather::find_stations(const Coords& origin,
                                        const double offset_theta,
                                        const double min_threshold,
                                        const double max_threshold) {
-   const Coords updated = this->get_new_coords(origin, 
+   const Coords updated = this->get_new_coords(origin,
                                                offset_dist,
                                                offset_theta);
    vector<Station> nearby_stations;
@@ -431,36 +436,36 @@ void Weather::test() {
    printf("\nNumber of entries  = %zu\n", this->num_entries());
    printf("Number of targets  = %zu\n", this->num_targets());
    printf("Target Names:\n");
-   for (auto t : this->target_names_) 
+   for (auto t : this->target_names_)
       std::cout << '\t' << t << '\n';
 
    printf("\nNumber of features = %zu\n", this->num_features());
    printf("Feature Names:\n");
-   for (auto f : this->feature_names_) 
+   for (auto f : this->feature_names_)
       std::cout << '\t' << f << '\n';
 
    /* print all station data */
    printf("\nNumber of weather stations = %zu\n", this->num_stations());
    printf("[ ID, Name, Latitude, Longitude ]\n");
    const auto stations = this->station_data("all");
-   for (const auto s : stations) 
+   for (const auto s : stations)
       s.print();
-   
+
    /* grab data about just edinburgh station */
    printf("\nStation data for EDINBURGH/GOGARBANK:\n");
    const auto edinburgh = this->station_data("EDINBURGH/GOGARBANK");
-   for (const auto e : edinburgh) 
+   for (const auto e : edinburgh)
       e.print();
 
    /* same for id = 3225 */
    printf("\nStation data for ID 3225:\n");
    const auto station3225 = this->station_data("3225");
-   for (const auto s : station3225) 
+   for (const auto s : station3225)
       s.print();
 
    printf("\nTemperature data:\n");
    const auto temp_data = this->feature_data("Temperature");
-   for (const auto t : temp_data) 
+   for (const auto t : temp_data)
       printf("%5s ", t.c_str());
    printf("Done!\n");
 
@@ -470,8 +475,8 @@ void Weather::test() {
    /* since most invalid values are in Gust, reset any invalid values in
       there from -99999 to 0 */
    auto new_gust = this->feature_data("Gust");
-   for (auto& g : new_gust) { 
-      if (g == "-99999") g = "0"; 
+   for (auto& g : new_gust) {
+      if (g == "-99999") g = "0";
    }
    this->modify("Gust", new_gust);
    //for (const auto r : this->data_) r.print();
@@ -497,9 +502,9 @@ void Weather::test() {
       }
    }
    this->modify("Pressure Trend", tendency);
-   
+
    /* part 2: Enumerate Wind direction using 16 point compass index */
-   vector<string> wind_dirs{"NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", 
+   vector<string> wind_dirs{"NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S",
                             "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
    auto direction = this->feature_data("Wind Direction");
    for (auto& d : direction)
@@ -513,28 +518,28 @@ void Weather::test() {
    /* take some features from data in edinburgh on 24th oct 2017 */
    printf("Temperature and Dew Point measurements for Edinburgh 24/10/2017:\n");
    printf("[Time since midnight (mins), Temperature (C), Dew Point (C)]\n");
-   vector<string> feats = { "Time since midnight", 
-                            "Temperature", 
+   vector<string> feats = { "Time since midnight",
+                            "Temperature",
                             "Dew Point" };
    auto dewpoint = this->get_observations("3166", "2017-10-24", "", feats);
-   for (const auto d : dewpoint) 
+   for (const auto d : dewpoint)
       d.print();
 
    /* nearest stations to a point 100km to the NW of edinburgh*/
    printf("\nNearest stations 100km NW of Edinburgh:\n");
    auto nearest_stations = this->find_stations(edinburgh[0].coords, 100, -45, 10, 75);
-   for (const auto n : nearest_stations) 
+   for (const auto n : nearest_stations)
       n.print();
    const Station closest = nearest_stations[0];
    string obs_date = "2017-10-24";
    printf("\nUsing station #%s on %s:\n", closest.id.c_str(), obs_date.c_str());
-   feats = { "Time since midnight", 
-             "Pressure", 
+   feats = { "Time since midnight",
+             "Pressure",
              "Pressure Trend",
              "Wind Direction" };
    printf("[Time since midnight (min), Pressure, Pressure Trend, Wind Direction]\n");
    const auto observations = this->get_observations(closest.id, obs_date, "", feats);
-   for (const auto o : observations) 
+   for (const auto o : observations)
       o.print();
    printf("Done!\n");
 
@@ -560,11 +565,11 @@ void Weather::test() {
    printf("       Step 9 - Select Features\n");
    printf("######################################\n");
    /* To finish create an array of strings containing a subset of the features
-      you feel will perform best in the classification. Call the select() 
+      you feel will perform best in the classification. Call the select()
       method to filter the data */
    feats = { "Temperature", "Visibility", "Pressure", "Pressure Trend", "Humidity" };
    printf("[ ");
-   for (const auto f : feats) 
+   for (const auto f : feats)
       printf("\"%s\" ", f.c_str());
    printf("]\n");
    this->select(feats);
@@ -576,8 +581,8 @@ void Weather::test() {
 void Weather::fix() {
    /*fix gust measurements to 0 if invalid */
    auto new_gust = this->feature_data("Gust");
-   for (auto& g : new_gust) { 
-      if (g == "-99999") g = "0"; 
+   for (auto& g : new_gust) {
+      if (g == "-99999") g = "0";
    }
    this->modify("Gust", new_gust);
 
@@ -596,7 +601,7 @@ void Weather::fix() {
    this->modify("Pressure Trend", tendency);
 
    /* enumerate wind direction */
-   vector<string> wind_dirs{"NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", 
+   vector<string> wind_dirs{"NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S",
                             "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N"};
    auto direction = this->feature_data("Wind Direction");
    for (auto& d : direction)

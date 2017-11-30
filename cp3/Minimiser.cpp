@@ -1,6 +1,6 @@
 #include <vector>
 #include <sstream>
-#include <matplotlib-cpp/matplotlibcpp.h>
+#include "../matplotlibcpp.h"
 namespace plt = matplotlibcpp; 
 
 #include "../global.h"

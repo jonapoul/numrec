@@ -10,3 +10,4 @@ notes
 *.pyc
 *.dot
 machine/python/pics
+*.png

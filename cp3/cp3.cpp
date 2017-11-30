@@ -19,7 +19,6 @@
 #include "Math/IFunction.h"
 #include "Math/Functor.h"
 #include "Minuit2/Minuit2Minimizer.h"
-
 // global array of points from the data file, only used to access x/y values in chisq_2() for minuit
 DataPoints global_datapoints;
 
@@ -63,7 +62,7 @@ int main() {
    m.set_max_iterations(max_iterations);           // limit the iteration count
    m.set_initial_grid_search_volumes(1e2);         // how many grid volumes to check along each param axis
 
-   const Params upper = { 1.1,  0.1 }; 
+   const Params upper = { 1.1,  0.1 };
    const Params lower = { 0.9, -0.1 };
    m.set_param_limits(upper, lower);               // limits of initial grid search for each parameter
 
@@ -72,7 +71,7 @@ int main() {
 
    const size_t N_points = 1e3;
    const XArray smooth_x = generate_smooth_x_values(file_data.x, N_points);
-   const DataPoints fitted_points(smooth_x, final_params, m.model_name(), m.model()); 
+   const DataPoints fitted_points(smooth_x, final_params, m.model_name(), m.model());
 
    m.plot({file_data, fitted_points});             // plot the line against datapoints
    m.find_parameter_errors(final_params);          // calculate/plot how chisq changes as we vary each param in turn
@@ -80,17 +79,17 @@ int main() {
 
 
 
-
+#ifndef NO_MINUIT_INSTALLED
    printf("-------------------STARTING MINUIT2 MINIMISATION--------------------\n");
    global_datapoints = file_data; // accessed in chisq_2()
-   ROOT::Math::Minimizer* min = new ROOT::Minuit2::Minuit2Minimizer("minimize"); 
+   ROOT::Math::Minimizer* min = new ROOT::Minuit2::Minuit2Minimizer("minimize");
 
    // minimiser settings
-   min->SetMaxFunctionCalls(max_iterations); 
+   min->SetMaxFunctionCalls(max_iterations);
    min->SetTolerance(epsilon);
    min->SetPrintLevel(1); // increase this to print out more verbose results
 
-   ROOT::Math::Functor function(&chisq_2, 2); // 2 parameters 
+   ROOT::Math::Functor function(&chisq_2, 2); // 2 parameters
    min->SetFunction(function);
 
    double variable[] = { 1.0,  0.0 };  // starting point
@@ -99,11 +98,11 @@ int main() {
    min->SetVariable(1, "b", variable[1], step[1]);
 
    // do the minimization
-   min->Minimize(); 
-   
-   printf("Minimum chisq = %f\n", min->MinValue());
-   delete min;   
-   printf("--------------------ENDING MINUIT2 MINIMISATION--------------------\n\n\n");
+   min->Minimize();
 
+   printf("Minimum chisq = %f\n", min->MinValue());
+   delete min;
+   printf("--------------------ENDING MINUIT2 MINIMISATION--------------------\n\n\n");
+#endif
    return 0;
 }

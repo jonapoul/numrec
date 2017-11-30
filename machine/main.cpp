@@ -5,7 +5,6 @@
 
 #include "../global.h"
 #include "Weather.h"
-#include "test.h"
 
 int main(int argc, char** argv) {
    const std::string filename = "machine/data/basic.txt";
@@ -19,6 +18,4 @@ int main(int argc, char** argv) {
    //data.raw_print("features:");
    //for (auto f : w.feature_names()) std::cout << '\t' << f << '\n';
 
-   covariance(data);
-   // nearest_neighbours();
 }

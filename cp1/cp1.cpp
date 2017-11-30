@@ -11,7 +11,7 @@
 #include <sstream>
 
 #include "functions.h"
-#include <matplotlib-cpp/matplotlibcpp.h>
+#include "../matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
 int main(int argc, char** argv) {

@@ -4,8 +4,5 @@
 		{
 			"path": "."
 		},
-      {
-         "path": "/usr/include/mlpack"
-      }
 	]
 }

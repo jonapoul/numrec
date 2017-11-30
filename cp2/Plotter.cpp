@@ -8,7 +8,7 @@
 #include "RootFinder.h"
 #include "PNJunction.h"
 
-#include <matplotlib-cpp/matplotlibcpp.h>
+#include "../matplotlibcpp.h"
 namespace plt = matplotlibcpp; 
 
 Plotter::Plotter(int flag, char f_char) {
