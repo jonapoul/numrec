@@ -22,6 +22,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.decomposition import RandomizedPCA, PCA
+from sklearn.linear_model import RidgeClassifier
 
 start = time.time()
 np.set_printoptions(threshold=np.nan)
@@ -76,52 +77,45 @@ allfeatures = [ # just for reference
    'Nearest Station Weather Type'
 ]
 names = [
-   #"Nearest Neighbors",
-   #"Linear SVC",
-   #"RBF SVM",
-   #"Gaussian Process",
-   #"Decision Tree",
-   #"Random Forest",
-   #"Neural Net",
-   #"AdaBoost",
-   #"Naive Bayes",
-   #"QDA",
-   'activation=identity',
-   'activation=logistic',
-   'activation=tanh',
-   'activation=relu',
+   # 'Nearest Neighbours',
+   # 'Decision Tree',
+   # 'Random Forest',
+   # 'AdaRFC',
+   # 'Neural Net',
+   # 'Ridge Classifier',
+   '1',
+   '2',
+   '5',
+   '10',
+   '20',
+   '50',
+   '100',
 ]
 classifiers = [
-   #KNeighborsClassifier(n_neighbors=5),
-   #SVC(kernel="linear", C=0.025),
-   #SVC(gamma=2, C=1),
-   #GaussianProcessClassifier(1.0 * RBF(1.0)),
-   #DecisionTreeClassifier(max_depth=10),
-   #RandomForestClassifier(n_estimators=50, n_jobs=-1),
-   #MLPClassifier(alpha=1),
-   #AdaBoostClassifier(),
-   #GaussianNB(),
-   #QuadraticDiscriminantAnalysis(),
-   MLPClassifier(activation='identity'),
-   MLPClassifier(activation='logistic'),
-   MLPClassifier(activation='tanh'),
-   MLPClassifier(activation='relu'),
+   # KNeighborsClassifier(n_jobs=-1, n_neighbors=1, p=1),
+   # DecisionTreeClassifier(max_depth=10),
+   # RandomForestClassifier(n_estimators=50, n_jobs=-1),
+   # AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=50, n_jobs=-1), n_estimators=1),
+   # MLPClassifier(activation='logistic', learning_rate='invscaling'),
+   # RidgeClassifier(fit_intercept=True),
+
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=1, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=2, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=5, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=10, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=20, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=50, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=100, p=1),
+   #KNeighborsClassifier(n_jobs=-1, n_neighbors=100, p=1, weights='uniform'),
+   #KNeighborsClassifier(n_jobs=-1, n_neighbors=100, p=1, weights='distance'),
 ]
-# DTC:  max_depth=10
-# RFC:  n_estimators=50, n_jobs=-1
-# KNC:  n_jobs=-1, n_neighbors=1, p=1
-# MLPC: 
-
-      ## TRY RadiusNeighborsClassifier YOU DAFT SHIT
-      ## and look through http://scikit-learn.org/stable/modules/classes.html#module-sklearn.neighbors
-
 
 print 'Chosen Classifiers:'
 print names
 
 nn_all = []
 nn_02  = []
-N = 40
+N = 30
 for j in range(N):
    iter_start = time.time()
    print 'iteration {0:2d}/{1}:       '.format(j, N),
@@ -142,14 +136,10 @@ for j in range(N):
       data_test  = data_test[class_test != 1]  # remove all test elements for class=1
       class_test = class_test[class_test != 1]
       score = clf.score(data_test, class_test)
-      # print '{0}:\n{1}'.format(names[i], confusion_matrix(actual, predicted))
       score_all = accuracy_score(actual,     predicted)
       score_02  = accuracy_score(class_test, clf.predict(data_test))
-      # print 'accuracy over all      = {0}'.format(score_all)
-      # print 'accuracy over type 0/2 = {0}'.format(score_02)
       nn_all[i].append(score_all)
       nn_02[i].append(score_02)
-      #print '{0}:\n{1}'.format(names[i], classification_report(actual, predicted))
       print '{0}={1:.2f}s '.format(i, time.time()-t),
    print '       total={0:.3f} secs'.format(time.time()-iter_start)
 

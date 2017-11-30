@@ -10,7 +10,7 @@ file_choices = [
    'data/basic.txt',
    'data/advanced.txt'
 ]
-weatherFile = file_choices[1]
+weatherFile = file_choices[0]
 print 'Loading {0}'.format(weatherFile)
 fileSlice = 0 # load all lines
 weather = Weather(weatherFile, fileSlice)
@@ -69,15 +69,18 @@ weather.modify('Pressure Trend', new_PT)
 
 # enumerate wind direction, and set relative direction
 print 'Enumerating Wind Direction'
-compassRose = ['NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
-# westerliness ranges from -4 at East up to +4 at West, and the same for northerliness
+compass = ['NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW','N']
+new_WD     = [compass.index(w) for w in weather.getFeatureData('Wind Direction')]
+weather.modify('Wind Direction', new_WD)
+
+# westerliness ranges from -4 at East up to +4 at West
+# northerliness from -4 at South, +4 at North
+# each of these numbers lines up the corresponding index in compass[] list above
+print 'Enumerating wind west/northerliness'
 westerliness  = [-1, -2, -3, -4, -3, -2, -1,  0,  1,  2,  3, 4, 3, 2, 1, 0]
 northerliness = [ 3,  2,  4,  0, -1, -2, -3, -4, -3, -2, -1, 0, 1, 2, 3, 4]
-new_WD     = [compassRose.index(w) for w in weather.getFeatureData('Wind Direction')]
-print 'Enumerating wind west/northerliness'
 wind_west  = [westerliness[wd]  for wd in new_WD]
 wind_north = [northerliness[wd] for wd in new_WD]
-weather.modify('Wind Direction', new_WD)
 weather.append('Wind West',  wind_west)
 weather.append('Wind North', wind_north)
 
@@ -108,8 +111,8 @@ features = [
    #'Longitude',
    #'Date',
    #'Day Number',
-   #'Time since midnight',
-   #'Gust',
+   'Time since midnight',
+   'Gust',
    'Temperature', 
    'Visibility', 
    #'Wind Direction',
@@ -120,8 +123,8 @@ features = [
    'Humidity',
    'Weather Type',
    'Relative Time',
-   #'Wind North', 
-   #'Wind West',
+   'Wind North', 
+   'Wind West',
    'Nearest Station Weather Type'
 ]
 
