@@ -10,7 +10,7 @@ file_choices = [
    'data/basic.txt',
    'data/advanced.txt'
 ]
-weatherFile = file_choices[1]
+weatherFile = file_choices[0]
 print 'Loading {0}'.format(weatherFile)
 fileSlice = 0 # load all lines
 weather = Weather(weatherFile, fileSlice)
@@ -34,8 +34,6 @@ times = weather.getFeatureData('Relative Time').astype(np.float)
 feats = ['Relative Time', 'Weather Type']
 # id number of each station's nearest station
 closest_ids = [weather.findStations(coords=(s[2],s[3]),minThreshold=2,maxThreshold=300)[0][0] for s in weather.getStationData('all')]
-print closest_ids
-print unique_ids
 # relative time and weather type of each datapoint
 unique_closest_obs = []
 # weather type at the closest weather station at the epoch of each datapoint
@@ -113,21 +111,22 @@ features = [
    #'Longitude',
    #'Date',
    #'Day Number',
+   'Relative Time',
    'Time since midnight',
    'Gust',
    'Temperature',
    'Visibility',
-   #'Wind Direction',
+   'Wind Direction',
    'Wind Speed',
    'Pressure',
    'Pressure Trend',
    'Dew Point',
    'Humidity',
-   'Weather Type',
-   'Relative Time',
    'Wind North',
    'Wind West',
-   'Nearest Station Weather Type'
+   'Nearest Station Weather Type',
+
+   'Weather Type',
 ]
 
 weather.select(features)

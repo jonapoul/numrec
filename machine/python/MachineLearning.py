@@ -85,11 +85,11 @@ names = [
    'Ridge\nClassifier',
 ]
 classifiers = [
-   KNeighborsClassifier(n_jobs=-1, n_neighbors=1, p=1),
+   KNeighborsClassifier(n_jobs=-1, n_neighbors=50, p=1, weights='distance'),
    DecisionTreeClassifier(max_depth=10),
    RandomForestClassifier(n_estimators=50, n_jobs=-1),
    AdaBoostClassifier(base_estimator=RandomForestClassifier(n_estimators=50, n_jobs=-1), n_estimators=1),
-   MLPClassifier(activation='logistic', learning_rate='invscaling'),
+   MLPClassifier(activation='logistic', learning_rate='invscaling', hidden_layer_sizes=(100,100,100,100)),
    RidgeClassifier(fit_intercept=True),
 ]
 
@@ -98,10 +98,10 @@ print names
 
 nn_all = []
 nn_02  = []
-N = 20
+N = 5
 for j in range(N):
    iter_start = time.time()
-   print 'iteration {0:2d}/{1}:       '.format(j, N),
+   print 'iteration {0:2d}/{1}:  '.format(j, N),
    for i in range(len(classifiers)):
       if j == 0:
          nn_all.append([])
@@ -112,19 +112,17 @@ for j in range(N):
       actual = class_test
       clf = classifiers[i]
       clf.fit(data_train, class_train)
-      # if names[i] == "Decision Tree":
-      #    tree.export_graphviz(clf, out_file='tree.dot')  # dot -Tpng tree.dot -o tree.png
-
       predicted = clf.predict(data_test)
       data_test  = data_test[class_test != 1]  # remove all test elements for class=1
       class_test = class_test[class_test != 1]
-      score = clf.score(data_test, class_test)
       score_all = accuracy_score(actual,     predicted)
       score_02  = accuracy_score(class_test, clf.predict(data_test))
       nn_all[i].append(score_all)
       nn_02[i].append(score_02)
       print '{0}={1:.2f}s '.format(i, time.time()-t),
-   print '       total={0:.3f} secs'.format(time.time()-iter_start)
+      if names[i] == "Decision\nTree":
+        tree.export_graphviz(clf, out_file='tree.dot', feature_names=features)  # dot -Tpng tree.dot -o tree.png
+   print '  total={0:.3f} secs'.format(time.time()-iter_start)
 
 print '\nall:'
 print 'mean   = {0}'.format(np.mean(nn_all))
@@ -133,25 +131,38 @@ print 'min    = {0}'.format(np.min(nn_all))
 print 'max    = {0}'.format(np.max(nn_all))
 print 'median = {0}'.format(np.median(nn_all))
 
-print '\n0/2:'
-print 'mean   = {0}'.format(np.mean(nn_02))
-print 'var    = {0}'.format(np.var(nn_02))
-print 'min    = {0}'.format(np.min(nn_02))
-print 'max    = {0}'.format(np.max(nn_02))
-print 'median = {0}'.format(np.median(nn_02))
+if N_targets == 3:
+    print '\n0/2:'
+    print 'mean   = {0}'.format(np.mean(nn_02))
+    print 'var    = {0}'.format(np.var(nn_02))
+    print 'min    = {0}'.format(np.min(nn_02))
+    print 'max    = {0}'.format(np.max(nn_02))
+    print 'median = {0}'.format(np.median(nn_02))
 
 print '\ntime = {0}'.format(time.time()-start)
 
-plt.figure()
+fig = plt.figure()
+ax = fig.gca()
+ax.set_yticks(np.arange(0, 1., 0.1))
 plt.boxplot(nn_all, 0, '')
-plt.title("Accuracy score over all weather types")
+title = 'Accuracy Score'
+if N_targets == 3:
+    title = 'Basic ' + title + ' (all weather types)'
+else:
+    title = 'Advanced ' + title
+plt.title(title)
 plt.ylim(0, 1)
-plt.xticks([i for i in range(len(names)+1)], [" "] + names, rotation=25)
+plt.xticks([i for i in range(len(names)+1)], [" "] + names)
+plt.grid(True)
 plt.show()
 
-plt.figure()
-plt.boxplot(nn_02, 0, '')
-plt.title("Accuracy score for weather types 0 and 2")
-plt.ylim(0, 1)
-plt.xticks([i for i in range(len(names)+1)], [" "] + names, rotation=25)
-plt.show()
+if N_targets == 3:
+    fig = plt.figure()
+    ax = fig.gca()
+    ax.set_yticks(np.arange(0, 1., 0.1))
+    plt.boxplot(nn_02, 0, '')
+    plt.title('Basic Accuracy Score (weather types 0 and 2)')
+    plt.ylim(0, 1)
+    plt.xticks([i for i in range(len(names)+1)], [" "] + names)
+    plt.grid(True)
+    plt.show()
